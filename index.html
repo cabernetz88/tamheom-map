@@ -1,0 +1,1966 @@
+<!doctype html><html lang="ko"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><title>나의 탐험 지도</title><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="탐험 지도"><meta name="theme-color" content="#2f6a2a"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a wide explorer's map on top (regions = skill areas, trees = finished tasks, fog = neglected areas),
+   then a two-column field desk: today's expedition list | region detail + expedition log. Stacks on phones. */
+:root {
+  --paper: #f6f7ef;
+  --bg: #eceee2;
+  --surface: #fbfcf6;
+  --ink: #203b14;
+  --muted: #5d6b55;
+  --line: #d3d9c6;
+  --accent: #2f6a2a;
+  --accent-soft: #dfe9d3;
+  --warn: #9a5a1c;
+  --warn-soft: #f3e6d4;
+  /* map materials */
+  /* aerial-photo materials: muted, earthy, lit from the upper left */
+  --terrain: #b9b089;
+  --land: #c9c09a;
+  --moss: #8fa868;
+  --jungle: #5b8544;
+  --sand: #d4c394;
+  --meadow: #a7c27a;
+  --water: #5d95a6;
+  --water-deep: #2c5b6f;
+  --water-line: #a4c8cf;
+  --tree: #3b6729;
+  --tree-hi: #84ad5a;
+  --tree-dark: #1f3c17;
+  --pine: #2e5326;
+  --house: #ebe4d2;
+  --roof: #a3533a;
+  --flower: #e3a64f;
+  --grass-line: #93ad74;
+  --contour: #b9a77d;
+  --trail: #a79a7a;
+  --road: #ddcfa8;
+  --road-edge: #b5a27a;
+  --asphalt: #4d5549;
+  --lane: #f6f7ef;
+  --overgrown: #b9c79c;
+  --gold: #c08a22;
+  --heart: #c9566f;
+  --minus: #b5432f;
+  --fog: #f6f7ef;
+  --grid: #dde1cf;
+  --shadow: rgba(32, 59, 20, 0.16);
+  --font-display: "Gowun Batang", "Batang", serif;
+  --font-body: "IBM Plex Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  --r: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #151b12; --bg: #0f140d; --surface: #1a2117; --ink: #e3ead6; --muted: #a2ae96; --line: #2f3a29;
+    --accent: #9fd18a; --accent-soft: #273a20; --warn: #e9b27a; --warn-soft: #3a2c1c;
+    --land: #1f281a; --moss: #2b3d22; --jungle: #2f4a25; --sand: #3a3524; --meadow: #2c3a21; --water: #2c4a4f; --water-line: #4f7a7f;
+    --tree: #5d8f4a; --tree-hi: #87b56a; --pine: #6c9455; --house: #4a4638; --roof: #a6654a; --flower: #d9a24f; --grass-line: #5a7444;
+    --contour: #6e6446; --trail: #6f6a55; --fog: #151b12; --grid: #222b1d; --shadow: rgba(0, 0, 0, 0.35);
+    --road: #5d5538; --road-edge: #3d3724; --asphalt: #7c8676; --lane: #e3ead6; --overgrown: #3b4c2e; --gold: #e2b65c; --heart: #e07d92; --minus: #ef8a76;
+    --terrain: #262c1f; --land: #323826; --moss: #2f4226; --jungle: #26401f; --sand: #474029; --meadow: #36472a; --water: #2a5260; --water-deep: #12303d; --water-line: #4f7a7f; --tree-dark: #13240f; --fog: #8a9483;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #151b12; --bg: #0f140d; --surface: #1a2117; --ink: #e3ead6; --muted: #a2ae96; --line: #2f3a29;
+  --accent: #9fd18a; --accent-soft: #273a20; --warn: #e9b27a; --warn-soft: #3a2c1c;
+  --land: #1f281a; --moss: #2b3d22; --jungle: #2f4a25; --sand: #3a3524; --meadow: #2c3a21; --water: #2c4a4f; --water-line: #4f7a7f;
+  --tree: #5d8f4a; --tree-hi: #87b56a; --pine: #6c9455; --house: #4a4638; --roof: #a6654a; --flower: #d9a24f; --grass-line: #5a7444;
+  --contour: #6e6446; --trail: #6f6a55; --fog: #151b12; --grid: #222b1d; --shadow: rgba(0, 0, 0, 0.35);
+  --road: #5d5538; --road-edge: #3d3724; --asphalt: #7c8676; --lane: #e3ead6; --overgrown: #3b4c2e; --gold: #e2b65c; --heart: #e07d92; --minus: #ef8a76;
+  --terrain: #262c1f; --land: #323826; --moss: #2f4226; --jungle: #26401f; --sand: #474029; --meadow: #36472a; --water: #2a5260; --water-deep: #12303d; --water-line: #4f7a7f; --tree-dark: #13240f; --fog: #8a9483;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.55;
+  padding-block: 20px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.page { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
+h1 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 30px; letter-spacing: -0.01em; text-wrap: balance; }
+.sub { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; font-size: 13px; color: var(--muted); }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.status.err { color: var(--warn); }
+header .sub { flex: 1; }
+.btn.jump { padding: 10px 16px; font-size: 14px; white-space: nowrap; box-shadow: 0 2px 8px var(--shadow); }
+.btn.jump:hover { filter: brightness(1.08); }
+
+.map-frame { background: var(--terrain); border: 1px solid var(--line); border-radius: var(--r); overflow-x: auto; }
+.map-frame svg { display: block; width: 100%; min-width: 760px; height: auto; }
+.region { cursor: pointer; }
+.region:focus-visible { outline: none; }
+.region:focus-visible .outline, .region.selected .outline { stroke: var(--accent); stroke-width: 3; stroke-dasharray: none; }
+.region .outline { fill: none; stroke: transparent; }
+.label { font-family: var(--font-display); font-weight: 700; font-size: 21px; fill: var(--ink); paint-order: stroke; stroke: var(--paper); stroke-width: 6px; stroke-linejoin: round; }
+.label-sub { font-family: var(--font-mono); font-size: 13px; fill: var(--muted); paint-order: stroke; stroke: var(--paper); stroke-width: 5px; stroke-linejoin: round; }
+.fog { pointer-events: none; }
+.label-gold { font-family: var(--font-mono); font-size: 13px; fill: var(--gold); paint-order: stroke; stroke: var(--paper); stroke-width: 5px; stroke-linejoin: round; font-weight: 500; }
+.star { background: none; border: 0; font-size: 22px; line-height: 1; padding: 0 2px; color: var(--line); }
+.star.on { color: var(--gold); }
+.star:disabled { cursor: default; }
+button.chip { font-family: inherit; cursor: pointer; }
+button.chip:hover { filter: brightness(0.95); }
+.picker { font: inherit; font-size: 13px; color: var(--ink); background: var(--paper); border: 1px solid var(--accent); border-radius: 8px; padding: 4px 8px; }
+.chip.gold { background: transparent; border: 1px solid var(--gold); color: var(--gold); }
+.chip.minus { background: transparent; border: 1px solid var(--minus); color: var(--minus); }
+.label-minus { font-family: var(--font-mono); font-size: 13px; fill: var(--minus); paint-order: stroke; stroke: var(--paper); stroke-width: 5px; stroke-linejoin: round; font-weight: 500; }
+@media (prefers-reduced-motion: no-preference) {
+  .fog { animation: drift 9s ease-in-out infinite alternate; }
+  @keyframes drift { from { transform: translateX(-6px); } to { transform: translateX(6px); } }
+  .twinkle { animation: twinkle 2.4s ease-in-out infinite alternate; }
+  @keyframes twinkle { from { opacity: 0.25; } to { opacity: 1; } }
+}
+/* 3D scene: one deliberate dusk look (not theme-switched), labels are glass plates over the canvas */
+.scene { position: relative; width: 100%; aspect-ratio: 1200 / 700; max-height: 74vh; background: #0b1210; overflow: hidden; }
+@media (max-width: 640px) { .scene { aspect-ratio: 4 / 3.6; } }
+.scene canvas { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+.scene canvas.dragging { cursor: grabbing; }
+.scene-ctl { position: absolute; right: 12px; top: 12px; display: flex; flex-direction: column; gap: 6px; }
+.scene-ctl button { width: 34px; height: 34px; border-radius: 6px; border: 1px solid rgba(225, 235, 215, 0.25); background: rgba(10, 16, 13, 0.62); color: #eef2e6; font-size: 17px; line-height: 1; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.scene-ctl button:hover { border-color: #c8f08a; }
+.scene-ctl button:focus-visible { outline: 2px solid #c8f08a; outline-offset: 2px; }
+.scene-help { position: absolute; left: 12px; bottom: 10px; margin: 0; padding: 3px 8px; border-radius: 5px; background: rgba(10, 16, 13, 0.5); color: #c9d2c2; font-size: 11.5px; pointer-events: none; }
+@media (max-width: 640px) { .scene-help { display: none; } }
+.scene-labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.tag { position: absolute; left: 0; top: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 5px 10px 6px; background: rgba(8, 13, 10, 0.8); color: #ffffff; border: 1px solid rgba(225, 235, 215, 0.3); border-radius: 6px; font: inherit; cursor: pointer; pointer-events: auto; white-space: nowrap; -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision; }
+.tag::after { content: ""; position: absolute; left: 50%; bottom: -8px; width: 1px; height: 8px; background: rgba(225, 235, 215, 0.55); }
+.tag-name { font-family: var(--font-body); font-weight: 700; font-size: 15px; line-height: 1.25; letter-spacing: -0.01em; }
+.tag-sub { font-family: var(--font-mono); font-size: 11.5px; color: #dfe7d6; }
+.tag-chips { display: flex; gap: 4px; }
+.tag-chip { font-size: 10.5px; line-height: 1.4; padding: 0 6px; border-radius: 999px; border: 1px solid currentColor; }
+.tag-chip.gold { color: #f2c35a; } .tag-chip.minus { color: #f29a86; } .tag-chip.fog { color: #c4ccbf; }
+.tag.sel { border-color: #c8f08a; box-shadow: 0 0 0 1px #c8f08a, 0 0 18px rgba(200, 240, 138, 0.35); }
+.tag.fogged .tag-name { color: #e4e9df; }
+.tag.frontier { pointer-events: none; background: rgba(10, 16, 13, 0.35); color: #c4ccbf; font-size: 12px; }
+.tag.frontier::after { display: none; }
+.tag:focus-visible { outline: 2px solid #c8f08a; outline-offset: 2px; }
+@media (max-width: 640px) { .tag { padding: 3px 7px 4px; } .tag-name { font-size: 12.5px; } .tag-sub, .tag-chips { display: none; } }
+.map-frame.is-3d { background: #0b1210; }
+.map-frame.is-3d .legend { background: var(--paper); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 10px 16px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); min-width: 760px; }
+
+.desk { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 18px; align-items: start; }
+@media (max-width: 860px) { .desk { grid-template-columns: 1fr; } }
+.col { display: flex; flex-direction: column; gap: 16px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
+.panel-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 14px 16px 6px; }
+.panel-head h2 { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.06em; color: var(--muted); }
+.count { font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+
+form.add { display: flex; gap: 8px; padding: 6px 12px 8px; }
+form.add input { flex: 1; min-width: 0; font: inherit; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+input:focus-visible, button:focus-visible, .task-text:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button { font: inherit; cursor: pointer; }
+.btn { background: var(--accent); color: var(--surface); border: 0; border-radius: 8px; padding: 0 18px; font-weight: 600; }
+.btn-ghost { background: none; border: 1px solid var(--line); color: var(--ink); border-radius: 8px; padding: 4px 10px; font-size: 13px; }
+.hint { margin: 0; padding: 0 16px 12px; font-size: 13px; color: var(--muted); }
+.hint b { color: var(--accent); font-weight: 600; }
+
+ul.list { list-style: none; margin: 0; padding: 0 8px 8px; }
+li.task { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 4px 8px; align-items: start; padding: 10px 8px; border-top: 1px solid var(--line); }
+li.task:first-child { border-top: 0; }
+.check { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--accent); cursor: pointer; }
+.task-text { overflow-wrap: anywhere; border-radius: 4px; cursor: text; }
+.task.done .task-text { color: var(--muted); text-decoration: line-through; }
+.meta { grid-column: 2 / 3; display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: 12px; line-height: 1; padding: 5px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-weight: 600; white-space: nowrap; }
+.chip.plain { background: transparent; border: 1px solid var(--line); color: var(--ink); font-weight: 500; }
+.chip.pending { background: transparent; border: 1px dashed var(--line); color: var(--muted); font-weight: 500; }
+.chip.age, .chip.fogged { background: var(--warn-soft); color: var(--warn); }
+.del { grid-row: 1; grid-column: 3; background: none; border: 0; color: var(--muted); font-size: 18px; line-height: 1; padding: 2px 6px; border-radius: 6px; }
+.del:hover { color: var(--warn); }
+.empty { padding: 16px; color: var(--muted); font-size: 14px; }
+details.older summary { cursor: pointer; padding: 8px 16px 14px; color: var(--muted); font-size: 13px; }
+
+.region-body { padding: 4px 16px 16px; display: flex; flex-direction: column; gap: 12px; }
+.region-title { margin: 0; font-family: var(--font-display); font-size: 24px; font-weight: 700; }
+.region-blurb { margin: 0; color: var(--muted); font-size: 14px; }
+.xp { display: flex; flex-direction: column; gap: 6px; }
+.xp-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
+.xp-bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; }
+.xp-bar span { display: block; height: 100%; background: var(--accent); }
+.skills { display: flex; flex-wrap: wrap; gap: 6px; }
+.small-h { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: var(--muted); }
+.overview { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.overview li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; padding: 9px 0; border-top: 1px solid var(--line); cursor: pointer; }
+.overview li:first-child { border-top: 0; }
+.overview .o-name { font-weight: 600; }
+.overview .o-meta { grid-column: 1 / -1; font-size: 12px; color: var(--muted); }
+.log-text { margin: 0; padding: 0 16px; white-space: pre-wrap; font-size: 14px; }
+.books { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.book { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; padding: 9px 0; border-top: 1px solid var(--line); }
+.book:first-child { border-top: 0; }
+.book-t { font-family: var(--font-display); font-weight: 700; font-size: 16px; }
+.book-a { color: var(--muted); font-size: 13px; flex: 1; min-width: 0; }
+.book form, form.book-add { display: flex; gap: 6px; }
+form.book-add input { flex: 1; min-width: 0; font: inherit; font-size: 14px; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+form.book-add .btn { padding: 0 14px; }
+details.read-done summary { cursor: pointer; font-size: 13px; color: var(--muted); }
+.book-d { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; font-size: 12.5px; color: var(--muted); }
+.book-d input { font: inherit; font-size: 12.5px; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 2px 6px; }
+.tl { display: flex; flex-direction: column; gap: 6px; padding: 2px 0 4px; }
+.tl-row { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 8px; align-items: center; }
+.tl-name { font-size: 12.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tl-track { position: relative; height: 24px; background: var(--paper); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.tl-bar { position: absolute; top: 3px; bottom: 3px; min-width: 8px; border-radius: 4px; background: var(--accent); color: var(--surface); font-size: 11px; font-weight: 600; line-height: 16px; padding: 0 6px; white-space: nowrap; overflow: hidden; }
+.tl-bar.open { background: repeating-linear-gradient(135deg, var(--accent) 0 8px, var(--tree-hi) 8px 12px); border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.tl-today { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--gold); }
+.tl-axis { position: relative; height: 16px; font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); }
+.tl-axis span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+.tl-key { font-size: 11.5px; color: var(--muted); }
+form.book-edit { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 6px; }
+form.book-edit input { flex: 1 1 140px; min-width: 0; font: inherit; font-size: 14px; color: var(--ink); background: var(--paper); border: 1px solid var(--accent); border-radius: 8px; padding: 7px 10px; }
+form.book-edit .btn { padding: 0 14px; }
+.ep-form { display: grid; grid-template-columns: 150px 96px minmax(0, 1.3fr) minmax(0, 1fr) auto; gap: 8px; }
+.ep-form input, .ep-form select, .ep-tools input[type=search] { min-width: 0; font: inherit; font-size: 14px; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+.ep-form .btn { padding: 0 16px; }
+@media (max-width: 760px) { .ep-form { grid-template-columns: 1fr 1fr; } .ep-form .ep-wide { grid-column: 1 / -1; } }
+.ep-tools { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 13px; color: var(--muted); }
+.ep-tools input[type=search] { flex: 1 1 200px; }
+.ep-day { border-top: 1px solid var(--line); padding-top: 10px; }
+.ep-day:first-child { border-top: 0; padding-top: 0; }
+.ep-day h3 { margin: 0 0 6px; font-size: 14px; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.ep-day h3 span { font-size: 12.5px; font-weight: 500; color: var(--muted); }
+.ep-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.ep-item { display: grid; grid-template-columns: auto minmax(0, 1.3fr) minmax(0, 1fr) auto; gap: 4px 10px; align-items: start; padding: 7px 0; border-top: 1px dashed var(--line); }
+.ep-item:first-child { border-top: 0; }
+.ep-en { font-weight: 600; overflow-wrap: anywhere; }
+.ep-ko { color: var(--muted); font-size: 14px; overflow-wrap: anywhere; cursor: default; transition: filter .15s; }
+.hide-ko .ep-ko { filter: blur(5px); cursor: pointer; }
+.hide-ko .ep-ko.show { filter: none; }
+.ep-acts { display: flex; gap: 2px; }
+.ep-acts .del { grid-row: auto; }
+.ep-item form { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
+.ep-item form input { flex: 1 1 160px; min-width: 0; font: inherit; font-size: 14px; color: var(--ink); background: var(--paper); border: 1px solid var(--accent); border-radius: 8px; padding: 6px 9px; }
+.ep-item form .btn { padding: 0 12px; }
+@media (max-width: 640px) { .ep-item { grid-template-columns: auto minmax(0, 1fr) auto; } .ep-ko { grid-column: 2 / 3; grid-row: 2; } }
+.rp header { justify-content: flex-start; }
+.rp-hero h1 { margin: 0 0 4px; }
+.rp-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.rp-stat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 16px; }
+.rp-stat b { display: block; font-family: var(--font-display); font-size: 28px; line-height: 1.2; }
+.rp-stat span { font-size: 12.5px; color: var(--muted); }
+.rp .tl-row { grid-template-columns: minmax(90px, 170px) minmax(0, 1fr); }
+.rp .tl-name { font-size: 14px; }
+.rp .tl-track { height: 32px; }
+.rp .tl-bar { line-height: 24px; font-size: 12px; }
+.log-date { padding: 8px 16px 14px; font-size: 12px; color: var(--muted); font-family: var(--font-mono); }
+@media (prefers-reduced-motion: no-preference) { li.task { transition: background-color .15s; } li.task:hover { background: var(--paper); } }
+</style>
+
+<div class="page" id="mainPage">
+  <header>
+    <h1 id="mapTitle" title="눌러서 지도 이름 바꾸기" tabindex="0" style="cursor:pointer">나의 탐험 지도</h1>
+    <div class="sub">
+      <span class="mono" id="today"></span>
+      <span id="totalXp" class="mono"></span>
+      <span class="status" id="status" role="status">지도를 펼치는 중…</span>
+    </div>
+    <button class="btn jump" id="jumpBtn" type="button">✏️ 할 일 적기</button>
+  </header>
+
+  <div class="map-frame" id="mapFrame">
+    <div class="scene" id="scene" hidden><canvas id="sceneCanvas" aria-label="해질녘 탐험 지도: 지역 이름표를 누르면 그 분야의 할 일과 스킬이 열립니다"></canvas><div class="scene-labels" id="sceneLabels"></div><div class="scene-ctl" role="group" aria-label="지도 시점"><button type="button" id="zoomIn" aria-label="확대">＋</button><button type="button" id="zoomOut" aria-label="축소">－</button><button type="button" id="viewReset" aria-label="처음 시점으로">⟲</button></div><p class="scene-help">드래그: 돌리기 · 오른쪽 드래그/Shift+드래그: 옮기기 · 휠·두 손가락: 확대</p></div>
+    <svg id="map" viewBox="0 0 1200 820" role="img" aria-label="탐험 지도: 지역을 누르면 그 분야의 할 일과 스킬이 열립니다"></svg>
+    <div class="legend">
+      <span>🌳 끝낸 할 일이 쌓일수록 나무·집이 늘어납니다</span>
+      <span>☁️ 7일 넘게 끝낸 일이 없으면 구름이 내려앉습니다</span>
+      <span>🛣️ 길 = 최근 14일 동안 끝낸 일 수: 풀숲 길(0) → 흙길(1~2) → 등불 길(3~6) → 불 밝힌 큰길(7+)</span>
+      <span>💡 지역의 불빛 = 최근 30일 동안 끝낸 일 수 · 고른 지역은 연둣빛 고리</span>
+      <span>✦ 금빛 반짝임 = 미래 가능성이 큰 땅(★★ 이상)</span>
+      <span>🍚 집밥을 해 먹으면 재무의 호수에 💰 동전, 건강의 들판에 💚 하트가 쌓입니다 · 🛵 배달은 다른 할 일처럼 오늘의 탐험에 들어가고, 완료 체크하면 두 곳에 − 표시(회색 동전·깨진 하트)가 생깁니다</span>
+      <span>◌ 미개척지 = 앞으로 열 새 분야 자리</span>
+      <span>🐾 지역 친구들: 숲 🦊 여우 · 고원 🐐 산양 · 정글 🐒 원숭이 · 호수 🦆 오리 · 들판 🐇 토끼 · 마을 🐕 강아지 · 언덕 🦉 부엉이 · 베이스캠프 🦝 너구리 — 레벨이 오르면 친구가 늘고, 가끔 길을 따라 베이스캠프에 놀러 옵니다</span>
+      <span>✏️ 지역을 누르면 이름·설명·스킬을 바꿀 수 있고, 전체 보기에서 미개척지에 새 지역을 열 수 있습니다</span>
+    </div>
+  </div>
+
+  <div class="desk">
+    <div class="col">
+      <section class="panel" aria-labelledby="todayHead">
+        <div class="panel-head"><h2 id="todayHead">오늘의 탐험</h2><span class="count" id="openCount"></span></div>
+        <form class="add" id="addForm" autocomplete="off">
+          <input id="newTask" type="text" maxlength="200" placeholder="(일자/요일) 할 일 → Enter  (예: (25/화) 보고서 초안 쓰기)" aria-label="새 할 일">
+          <button class="btn" type="submit">추가</button>
+        </form>
+        <p class="hint" id="addHint">지역을 고르지 않고 적으면 「분류 대기」로 들어갑니다. 그 작은 표시를 눌러 지역을 고르세요.</p>
+        <ul class="list" id="openList"></ul>
+      </section>
+      <section class="panel" aria-labelledby="doneHead">
+        <div class="panel-head"><h2 id="doneHead">오늘 끝낸 일</h2><span class="count" id="doneCount"></span></div>
+        <ul class="list" id="doneList"></ul>
+        <details class="older" id="olderWrap" hidden>
+          <summary id="olderSummary"></summary>
+          <ul class="list" id="olderList"></ul>
+        </details>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="panel" id="regionPanel" aria-live="polite"></section>
+      <section class="panel" aria-labelledby="logHead">
+        <div class="panel-head"><h2 id="logHead">탐험 일지</h2></div>
+        <p class="log-text" id="logAuto">지도를 읽는 중…</p>
+        <div class="log-date">실시간 · 체크할 때마다 바뀝니다</div>
+        <p class="small-h" style="padding:6px 16px 4px;border-top:1px solid var(--line)"><label for="logText">내 메모 · 이번 주 다짐</label></p>
+        <div style="padding:0 16px"><textarea id="logText" rows="3" maxlength="600" placeholder="이번 주에 길을 낼 지역, 다짐 한 줄 (자동 저장)" style="width:100%;font:inherit;font-size:14px;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:8px 10px;resize:vertical"></textarea></div>
+        <div class="log-date" id="logDate"></div>
+      </section>
+      <section class="panel" aria-labelledby="bkHead">
+        <div class="panel-head"><h2 id="bkHead">백업</h2></div>
+        <div class="region-body">
+          <p class="region-blurb">기록은 이 휴대폰(브라우저) 안에만 저장됩니다. 가끔 내보내기로 백업 파일을 만들어 두세요. 다른 기기에서 가져오기하면 그대로 옮겨집니다.</p>
+          <div class="skills"><button type="button" class="btn" id="exportBtn" style="padding:10px 16px">⬇️ 백업 내보내기</button><button type="button" class="btn-ghost" id="importBtn" style="padding:10px 16px">⬆️ 백업 가져오기</button><input type="file" id="importFile" accept="application/json,.json" hidden></div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div class="page rp" id="readingPage" hidden>
+  <header><button class="btn jump" id="rpBack" type="button">← 지도로 돌아가기</button></header>
+  <div class="rp-hero"><h1>📚 독서 언덕</h1><p class="region-blurb" id="rpBlurb"></p></div>
+  <div class="rp-stats" id="rpStats"></div>
+  <section class="panel"><div class="panel-head"><h2>독서 타임라인</h2></div><div class="region-body" id="rpTimeline"></div></section>
+  <section class="panel"><div class="panel-head"><h2>책장</h2></div><div class="region-body" id="rpBooks"></div></section>
+  <section class="panel"><div class="panel-head"><h2>독서 언덕의 남은 일</h2><span class="count" id="rpTaskCount"></span></div><ul class="list" id="rpTasks"></ul></section>
+</div>
+
+<div class="page rp" id="englishPage" hidden>
+  <header><button class="btn jump" id="epBack" type="button">← 지도로 돌아가기</button></header>
+  <div class="rp-hero"><h1>🌲 영어의 숲</h1><p class="region-blurb" id="epBlurb"></p></div>
+  <div class="rp-stats" id="epStats"></div>
+  <section class="panel"><div class="panel-head"><h2>공부한 것 적기</h2></div><div class="region-body">
+    <form class="ep-form" id="epForm" autocomplete="off">
+      <input type="date" id="epDate" aria-label="공부한 날">
+      <select id="epType" aria-label="종류"><option value="sentence">문장</option><option value="word">단어</option></select>
+      <input type="text" id="epEn" class="ep-wide" maxlength="300" placeholder="English (예: I work on railway policy.)" aria-label="영어 문장·단어">
+      <input type="text" id="epKo" class="ep-wide" maxlength="300" placeholder="한글 해석" aria-label="한글 해석">
+      <button class="btn" type="submit">추가</button>
+    </form>
+    <p class="tl-key">Enter로 추가하면 날짜·종류는 그대로 두고 다음 줄을 바로 적을 수 있습니다.</p>
+  </div></section>
+  <section class="panel"><div class="panel-head"><h2>일자별 공부 기록</h2><span class="count" id="epCount"></span></div><div class="region-body">
+    <div class="ep-tools"><input type="search" id="epSearch" placeholder="찾기 (영어·한글)" aria-label="공부 기록 찾기"><label><input type="checkbox" id="epHide"> 한글 가리기 (눌러서 하나씩 확인)</label></div>
+    <div id="epLog"></div>
+  </div></section>
+  <section class="panel"><div class="panel-head"><h2>영어의 숲의 남은 일</h2><span class="count" id="epTaskCount"></span></div><ul class="list" id="epTasks"></ul></section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ── 지역 설정: 확장할 때는 이 목록(또는 db의 meta/regions 문서)에 지역을 추가하면 지도가 그 자리에 새 땅을 그립니다. ── */
+const DEFAULT_MAP = {
+  regions: [
+    { id: "base", name: "베이스캠프", kind: "camp", x: 600, y: 430, r: 78, depts: ["base"], skills: ["정리", "결정", "생활"], blurb: "모든 탐험이 시작되는 곳. 어느 지역에도 속하지 않는 일이 여기 모입니다." },
+    { id: "english", name: "영어의 숲", kind: "forest", x: 320, y: 230, r: 122, depts: ["english"], skills: ["말하기", "쓰기", "단어", "듣기"], blurb: "문장 하나가 나무 한 그루가 되는 숲." },
+    { id: "gov", name: "일의 고원", kind: "plateau", x: 650, y: 165, r: 128, depts: ["work"], skills: ["업무", "보고서", "회의", "공부"], blurb: "일과 커리어의 고원. 높을수록 멀리 보입니다." },
+    { id: "dev", name: "개발 정글", kind: "jungle", x: 975, y: 280, r: 124, depts: ["dev"], skills: ["코딩", "AI 도구", "자동화", "만들기"], blurb: "길을 내며 나아가는 정글. 만든 도구가 곧 길이 됩니다." },
+    { id: "finance", name: "재무의 호수", kind: "lake", x: 975, y: 610, r: 118, depts: ["finance"], skills: ["가계부", "지출 절제", "저축"], blurb: "물이 새지 않게 지키는 호수. 잔잔할수록 좋습니다." },
+    { id: "health", name: "건강의 들판", kind: "meadow", x: 640, y: 690, r: 122, depts: ["health"], skills: ["운동", "수면", "마음"], blurb: "모든 탐험의 체력이 나오는 들판." },
+    { id: "family", name: "가족 마을(살림살이)", kind: "village", x: 310, y: 615, r: 116, depts: ["family"], skills: ["가족", "아이", "살림", "집안일"], blurb: "가족과 함께 가꾸는 마을. 집안일·살림도 여기서 합니다." },
+    { id: "reading", name: "독서 언덕", kind: "hill", x: 125, y: 425, r: 92, depts: ["reading"], skills: ["책 읽기", "글쓰기", "생각 정리"], blurb: "한 권씩 오를 때마다 시야가 넓어지는 언덕." }
+  ],
+  frontier: [ { x: 95, y: 105 }, { x: 1110, y: 100 }, { x: 105, y: 760 }, { x: 1120, y: 770 } ]
+};
+const LEVELS = [0, 3, 8, 15, 25, 40, 60, 90];
+/* 미래 가능성(1 보통 · 2 유망 · 3 아주 유망): 대표님이 지역 패널의 별로 바꾸면 db meta/potential에 저장됩니다. */
+const DEFAULT_POTENTIAL = { english: 3, dev: 3, gov: 2 };
+/* 보너스: 한 지역의 일을 끝내면 다른 지역에도 포인트가 쌓입니다. 할 일 데이터에 bonus: ["finance","health"]처럼 직접 붙일 수도 있습니다. */
+const BONUS_RULES = [
+  { label: "집밥", match: /집밥|밥\s*을?\s*(해|짓|지|하)|요리|해\s*먹|도시락|반찬|(아침|점심|저녁)\s*(차리|준비|만들)|식사\s*준비/, to: ["finance", "health"] }
+];
+const BONUS_STYLE = { finance: { icon: "💰", shape: "coin" }, health: { icon: "💚", shape: "heart" } };
+const PENALTY_RULES = [
+  { label: "배달", match: /배달|배민|요기요|쿠팡\s*이츠|시켜\s*먹/, to: ["finance", "health"] }
+];
+function penaltiesOf(t) {
+  if (Array.isArray(t.penalty)) return t.penalty.filter((x) => typeof x === "string");
+  const out = new Set();
+  PENALTY_RULES.forEach((r) => { if (r.match.test(t.text || "")) r.to.forEach((x) => out.add(x)); });
+  return [...out];
+}
+function bonusesOf(t) {
+  if (Array.isArray(t.bonus)) return t.bonus.filter((x) => typeof x === "string");
+  if (penaltiesOf(t).length) return [];
+  const out = new Set();
+  BONUS_RULES.forEach((r) => { if (r.match.test(t.text || "")) r.to.forEach((x) => out.add(x)); });
+  return [...out];
+}
+
+/* ── 저장소: 이 휴대폰(브라우저)의 localStorage에 저장합니다.
+   나중에 Firebase 같은 클라우드로 옮길 때는 makeLocalDb()만 같은 모양(collection/doc, add/update/set/delete/onSnapshot)으로
+   바꾸면 화면 코드는 그대로 씁니다. 백업 파일(JSON)도 그대로 옮겨 넣을 수 있습니다. ── */
+function makeLocalDb() {
+  const KEY = "tamheom-map-v1";
+  let store = {};
+  try { store = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (_) { store = {}; }
+  const subs = new Set();
+  const save = () => {
+    try { localStorage.setItem(KEY, JSON.stringify(store)); }
+    catch (e) { const err = new Error("quota"); err.code = "quota_exceeded"; throw err; }
+  };
+  const coll = (c) => (store[c] && typeof store[c] === "object" ? store[c] : (store[c] = {}));
+  const notify = () => subs.forEach((f) => f());
+  const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  const sub = (f) => { subs.add(f); f(); return () => subs.delete(f); };
+  return {
+    collection(c) {
+      return {
+        add: async (data) => { coll(c)[newId()] = { ...data }; save(); notify(); },
+        onSnapshot: (cb) => sub(() => cb({ docs: Object.entries(coll(c)).map(([id, d]) => ({ id, data: () => d })), metadata: { fromCache: false } }))
+      };
+    },
+    doc(path) {
+      const [c, id] = path.split("/");
+      return {
+        update: async (d) => { if (!coll(c)[id]) return; coll(c)[id] = { ...coll(c)[id], ...d }; save(); notify(); },
+        set: async (d) => { coll(c)[id] = { ...d }; save(); notify(); },
+        delete: async () => { delete coll(c)[id]; save(); notify(); },
+        onSnapshot: (cb) => sub(() => cb({ exists: !!coll(c)[id], data: () => coll(c)[id] }))
+      };
+    },
+    exportAll: () => JSON.stringify({ app: "tamheom-map", version: 1, exportedAt: new Date().toISOString(), data: store }, null, 2),
+    importAll: (txt) => {
+      const o = JSON.parse(txt);
+      if (!o || o.app !== "tamheom-map" || !o.data || typeof o.data !== "object") throw new Error("not a backup");
+      store = o.data; save(); notify();
+    }
+  };
+}
+
+const $ = (id) => document.getElementById(id);
+const SVGNS = "http://www.w3.org/2000/svg";
+const localDate = (d = new Date()) => d.toLocaleDateString("sv-SE");
+const todayStr = localDate();
+const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
+$("today").textContent = `${todayStr} (${WEEKDAYS[new Date().getDay()]})`;
+
+let books = [], studies = [];
+let db = null, tasks = [], writable = true, mapConf = DEFAULT_MAP, selected = null, potential = {};
+function potentialOf(reg) { const v = potential[reg.id] ?? reg.potential ?? DEFAULT_POTENTIAL[reg.id] ?? 1; return Math.max(1, Math.min(3, Math.round(v))); }
+function sizeScale(reg, st) { return reg.id === "base" ? 1 : 0.68 + 0.47 * Math.max(-0.3, Math.min(1, (st.freq30 + 0.5 * ((st.bonus30 || 0) - (st.penalty30 || 0))) / 12)); }
+
+function hash(str) { let h = 2166136261; for (const ch of str) { h ^= ch.codePointAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function rng(seed) { let s = seed || 1; return () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; }; }
+function daysBetween(a, b) { return Math.round((new Date(b + "T00:00:00") - new Date(a + "T00:00:00")) / 86400000); }
+function el(tag, attrs = {}, parent) {
+  const n = document.createElementNS(SVGNS, tag);
+  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+  if (parent) parent.appendChild(n);
+  return n;
+}
+function blob(cx, cy, r, seed, n = 12, wobble = 0.28) {
+  const rand = rng(seed);
+  const pts = Array.from({ length: n }, (_, i) => {
+    const a = (i / n) * Math.PI * 2;
+    const rr = r * (1 - wobble / 2 + wobble * rand());
+    return [cx + Math.cos(a) * rr, cy + Math.sin(a) * rr * 0.86];
+  });
+  let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+  for (let i = 0; i < n; i++) {
+    const p0 = pts[(i - 1 + n) % n], p1 = pts[i], p2 = pts[(i + 1) % n], p3 = pts[(i + 2) % n];
+    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+    const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+    d += ` C${c1[0].toFixed(1)},${c1[1].toFixed(1)} ${c2[0].toFixed(1)},${c2[1].toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+  }
+  return d + "Z";
+}
+function spots(reg, count, seedExtra, spread = 0.62) {
+  const rand = rng(hash(reg.id + seedExtra));
+  const out = [];
+  let guard = 0;
+  while (out.length < count && guard < count * 30) {
+    guard++;
+    const a = rand() * Math.PI * 2, d = Math.sqrt(rand()) * reg.r * spread;
+    const p = [reg.x + Math.cos(a) * d, reg.y + Math.sin(a) * d * 0.82];
+    if (Math.abs(p[1] - (reg.y + reg.r * 0.42)) < 26 && Math.abs(p[0] - reg.x) < 70) continue; // keep label area clear
+    if (out.every((q) => Math.hypot(q[0] - p[0], q[1] - p[1]) > 15)) out.push(p);
+  }
+  return out.sort((a, b) => a[1] - b[1]);
+}
+
+/* 일자별 끝낸 일(배달 기록 제외, 모든 지역 합계): { "2026-11-22": 8, ... } */
+function doneByDay() {
+  const m = {};
+  tasks.forEach((t) => { if (!t.done || penaltiesOf(t).length) return; const d = t.doneAt ? localDate(new Date(t.doneAt)) : t.date; if (d) m[d] = (m[d] || 0) + 1; });
+  return m;
+}
+function baseSubText() { const m = doneByDay(), total = Object.values(m).reduce((a, b) => a + b, 0); return `오늘 끝낸 일 ${m[todayStr] || 0} · 누적 ${total}`; }
+function regionOf(t) {
+  if (!t.dept) return null;
+  return mapConf.regions.find((r) => r.depts.includes(t.dept)) || mapConf.regions.find((r) => r.id === "base") || null;
+}
+function regionStats(reg) {
+  const mine = tasks.filter((t) => regionOf(t) === reg);
+  const done = mine.filter((t) => t.done && !penaltiesOf(t).length);
+  const xp = done.length;
+  let level = 1; LEVELS.forEach((v, i) => { if (xp >= v) level = i + 1; });
+  const cur = LEVELS[level - 1] ?? 0, next = LEVELS[level];
+  const lastDone = done.map((t) => t.doneAt ? localDate(new Date(t.doneAt)) : t.date).filter(Boolean).sort().pop() || null;
+  const idle = lastDone ? daysBetween(lastDone, todayStr) : null;
+  const recent = mine.some((t) => (t.date || "") >= localDate(new Date(Date.now() - 6 * 86400000)) || (t.doneAt && daysBetween(localDate(new Date(t.doneAt)), todayStr) <= 6));
+  const fog = reg.id === "base" ? 0 : idle === null ? 0.62 : idle > 14 ? 0.6 : idle > 7 ? 0.36 : 0;
+  const freq = done.filter((t) => t.doneAt && daysBetween(localDate(new Date(t.doneAt)), todayStr) <= 13).length;
+  const road = freq >= 7 ? 3 : freq >= 3 ? 2 : freq >= 1 ? 1 : 0;
+  const freq30 = done.filter((t) => t.doneAt && daysBetween(localDate(new Date(t.doneAt)), todayStr) <= 29).length;
+  const bon = tasks.filter((t) => t.done && regionOf(t) !== reg && bonusesOf(t).includes(reg.id));
+  const bonus = bon.length;
+  const bonus30 = bon.filter((t) => t.doneAt && daysBetween(localDate(new Date(t.doneAt)), todayStr) <= 29).length;
+  const pen = tasks.filter((t) => t.done && penaltiesOf(t).includes(reg.id));
+  const penalty = pen.length;
+  const penalty30 = pen.filter((t) => daysBetween(t.doneAt ? localDate(new Date(t.doneAt)) : (t.date || todayStr), todayStr) <= 29).length;
+  return { mine, open: mine.filter((t) => !t.done), xp, level, cur, next, lastDone, idle, recent, fog, freq, road, freq30, bonus, bonus30, penalty, penalty30 };
+}
+
+/* ── 지도 그리기 ── */
+function drawTree(g, x, y, s, kind) {
+  el("ellipse", { cx: x + s * 0.5, cy: y + s * 0.55, rx: s * 1.05, ry: s * 0.82, fill: "#000", opacity: 0.24 }, g);
+  if (kind === "pine") {
+    el("polygon", { points: `${x},${y - s * 1.4} ${x - s * 0.8},${y + s * 0.7} ${x + s * 0.8},${y + s * 0.7}`, fill: "url(#pineG)" }, g);
+    return;
+  }
+  el("circle", { cx: x, cy: y, r: s, fill: "url(#canopy)" }, g);
+}
+/* 항공사진 질감: 지형 기복(diffuse lighting), 들쭉날쭉한 해안선(displacement), 물 깊이, 구름 */
+const MAP_DEFS = `
+<filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="10"/></filter>
+<filter id="ground" x="0" y="0" width="100%" height="100%">
+  <feTurbulence type="fractalNoise" baseFrequency="0.009" numOctaves="5" seed="2" result="n"/>
+  <feDiffuseLighting in="n" surfaceScale="5" lighting-color="#ffffff" result="l"><feDistantLight azimuth="225" elevation="48"/></feDiffuseLighting>
+  <feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="2" seed="4" result="g"/>
+  <feColorMatrix in="g" type="matrix" values="0 0 0 0 0.5  0 0 0 0 0.5  0 0 0 0 0.5  0.35 0 0 0 0" result="grain"/>
+  <feComposite in="l" in2="SourceGraphic" operator="arithmetic" k1="1.3" result="lit"/>
+  <feBlend in="grain" in2="lit" mode="multiply" result="lg"/>
+  <feComposite in="lg" in2="SourceAlpha" operator="in"/>
+</filter>
+<filter id="relief" x="-10%" y="-10%" width="120%" height="120%">
+  <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="4" seed="5" result="n"/>
+  <feDisplacementMap in="SourceGraphic" in2="n" scale="16" xChannelSelector="R" yChannelSelector="G" result="d"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.08" numOctaves="4" seed="11" result="n2"/>
+  <feDiffuseLighting in="n2" surfaceScale="2.6" lighting-color="#ffffff" result="l"><feDistantLight azimuth="225" elevation="52"/></feDiffuseLighting>
+  <feComposite in="l" in2="d" operator="arithmetic" k1="1.3" result="lit"/>
+  <feComposite in="lit" in2="d" operator="in"/>
+</filter>
+<filter id="cloud" x="-30%" y="-30%" width="160%" height="160%">
+  <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="b"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="4" seed="8" result="n"/>
+  <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  2.6 0 0 0 -0.7" result="m"/>
+  <feComposite in="b" in2="m" operator="in"/>
+</filter>
+<radialGradient id="canopy" cx="0.36" cy="0.34" r="0.72"><stop offset="0" style="stop-color:var(--tree-hi)"/><stop offset="0.55" style="stop-color:var(--tree)"/><stop offset="1" style="stop-color:var(--tree-dark)"/></radialGradient>
+<linearGradient id="pineG" x1="0" y1="0" x2="1" y2="0"><stop offset="0" style="stop-color:var(--tree-hi)"/><stop offset="0.45" style="stop-color:var(--pine)"/><stop offset="1" style="stop-color:var(--tree-dark)"/></linearGradient>
+<radialGradient id="waterG" cx="0.5" cy="0.46" r="0.6"><stop offset="0" style="stop-color:var(--water-deep)"/><stop offset="0.72" style="stop-color:var(--water)"/><stop offset="1" style="stop-color:var(--water-line)"/></radialGradient>
+<radialGradient id="vig" cx="0.5" cy="0.5" r="0.75"><stop offset="0.55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.3"/></radialGradient>`;
+function drawHouse(g, x, y) {
+  el("ellipse", { cx: x + 3, cy: y + 9, rx: 12, ry: 4, fill: "var(--shadow)" }, g);
+  el("rect", { x: x - 9, y: y - 4, width: 18, height: 13, fill: "var(--house)", stroke: "var(--contour)", "stroke-width": 1 }, g);
+  el("polygon", { points: `${x - 12},${y - 3} ${x},${y - 14} ${x + 12},${y - 3}`, fill: "var(--roof)" }, g);
+}
+
+function drawPotential(g, reg0, reg, pot) {
+  const R = reg0.r * (1 + 0.15 * pot);
+  const pg = el("g", {}, g);
+  el("path", { d: blob(reg0.x, reg0.y, R, hash(reg0.id) + 50, 14, 0.18), fill: "var(--gold)", "fill-opacity": 0.1, stroke: "var(--gold)", "stroke-width": 1.5, "stroke-opacity": 0.45 }, pg);
+  const rand = rng(hash(reg0.id + "spark"));
+  for (let i = 0; i < pot * 5; i++) {
+    const a = rand() * Math.PI * 2, d = reg.r * 1.02 + rand() * Math.max(6, R * 0.92 - reg.r * 1.02);
+    const x = reg0.x + Math.cos(a) * d, y = reg0.y + Math.sin(a) * d * 0.86, s = 3 + rand() * 3;
+    const star = el("path", { class: "twinkle", d: `M${x},${y - s} L${x + s * 0.25},${y - s * 0.25} L${x + s},${y} L${x + s * 0.25},${y + s * 0.25} L${x},${y + s} L${x - s * 0.25},${y + s * 0.25} L${x - s},${y} L${x - s * 0.25},${y - s * 0.25}Z`, fill: "var(--gold)" }, pg);
+    star.style.animationDelay = (rand() * 2.4).toFixed(2) + "s";
+  }
+  if (reg.r < reg0.r * 0.9) {
+    const a = -0.65, x = reg0.x + Math.cos(a) * R * 0.84, y = reg0.y + Math.sin(a) * R * 0.84 * 0.86;
+    el("path", { d: `M${x - 7},${y - 7} L${x + 7},${y + 7} M${x + 7},${y - 7} L${x - 7},${y + 7}`, stroke: "var(--roof)", "stroke-width": 3.5, "stroke-linecap": "round" }, pg);
+    const t = el("text", { class: "label-gold", x: reg0.x, y: reg0.y - R * 0.86 - 8, "text-anchor": "middle" }, pg);
+    t.textContent = "✦ 유망 미개척지";
+  }
+}
+
+function drawRegion(svg, reg0) {
+  const st = regionStats(reg0);
+  const pot = potentialOf(reg0);
+  const reg = { ...reg0, r: reg0.r * sizeScale(reg0, st) };
+  const seed = hash(reg.id);
+  const g = el("g", { class: "region" + (selected === reg.id ? " selected" : ""), tabindex: "0", role: "button", "aria-label": `${reg.name}, 레벨 ${st.level}, 끝낸 일 ${st.xp}개, 미래 가능성 ${pot}단계` }, svg);
+  if (pot >= 2 && reg.id !== "base") drawPotential(g, reg0, reg, pot);
+  const base = { forest: "var(--moss)", jungle: "var(--jungle)", plateau: "var(--sand)", lake: "var(--sand)", meadow: "var(--meadow)", village: "var(--land)", hill: "var(--moss)", camp: "var(--sand)" }[reg.kind] || "var(--land)";
+  el("path", { d: blob(reg.x, reg.y, reg.r, seed), fill: base, filter: "url(#relief)" }, g);
+  const growth = st.level - 1; // 0..7
+
+  if (reg.kind === "plateau" || reg.kind === "hill") {
+    [0.72, 0.48, 0.26].forEach((k, i) => el("path", { d: blob(reg.x, reg.y - 6, reg.r * k, seed + i + 1, 10), fill: "none", stroke: "var(--contour)", "stroke-width": 1.4 }, g));
+  }
+  if (reg.kind === "lake") {
+    el("path", { d: blob(reg.x, reg.y - 4, reg.r * 0.7, seed + 7, 10, 0.2), fill: "url(#waterG)" }, g);
+    const rr = rng(seed + 3);
+    for (let i = 0; i < 6; i++) { const x = reg.x - 50 + rr() * 90, y = reg.y - 40 + rr() * 60; el("path", { d: `M${x},${y} q8,-5 16,0`, fill: "none", stroke: "var(--water-line)", "stroke-width": 1.5 }, g); }
+  }
+  if (reg.kind === "meadow") {
+    spots(reg, 30, "grass", 0.75).forEach(([x, y]) => el("path", { d: `M${x},${y} l-3,-7 M${x + 2},${y} l1,-8 M${x + 4},${y} l4,-6`, stroke: "var(--grass-line)", "stroke-width": 1.2, fill: "none" }, g));
+    spots(reg, 3 + growth * 5, "flower", 0.7).forEach(([x, y]) => el("circle", { cx: x, cy: y, r: 3.2, fill: "var(--flower)" }, g));
+  }
+  if (reg.kind === "camp") {
+    el("circle", { cx: reg.x, cy: reg.y - 6, r: 7, fill: "var(--flower)" }, g);
+    el("polygon", { points: `${reg.x - 42},${reg.y + 4} ${reg.x - 24},${reg.y - 26} ${reg.x - 6},${reg.y + 4}`, fill: "var(--roof)" }, g);
+    el("polygon", { points: `${reg.x + 8},${reg.y + 4} ${reg.x + 26},${reg.y - 22} ${reg.x + 44},${reg.y + 4}`, fill: "var(--house)", stroke: "var(--contour)" }, g);
+    el("path", { d: `M${reg.x + 2},${reg.y - 70} v34 M${reg.x + 2},${reg.y - 70} l18,6 -18,6`, stroke: "var(--ink)", "stroke-width": 2, fill: "var(--roof)" }, g);
+  }
+
+  const counts = { forest: 3 + growth * 4, jungle: 4 + growth * 5, plateau: 2 + growth * 2, lake: 1 + growth * 3, hill: 2 + growth * 3, meadow: 1 + growth, village: 0, camp: 2 };
+  const n = Math.min(counts[reg.kind] ?? 3, 42);
+  const spread = reg.kind === "lake" ? 0.95 : 0.66;
+  let pts = spots(reg, reg.kind === "lake" ? n * 3 : n, "trees", spread);
+  if (reg.kind === "lake") pts = pts.filter(([x, y]) => Math.hypot(x - reg.x, (y - reg.y) / 0.82) > reg.r * 0.68).slice(0, n);
+  const treeKind = reg.kind === "plateau" || reg.kind === "hill" ? "pine" : "round";
+  const size = reg.kind === "jungle" ? 13 : 10;
+  pts.forEach(([x, y], i) => drawTree(g, x, y, size - (i % 3), treeKind));
+  if (reg.kind === "village") spots(reg, 2 + growth * 2, "houses", 0.62).forEach(([x, y]) => drawHouse(g, x, y));
+
+  if (st.bonus > 0) {
+    const style = (BONUS_STYLE[reg.id] || { shape: "coin" }).shape;
+    const n = Math.min(st.bonus, 12);
+    const bx = reg.x + reg.r * 0.5, by = reg.y - reg.r * 0.5;
+    const bg = el("g", {}, g);
+    for (let i = 0; i < n; i++) {
+      if (style === "coin") {
+        const x = bx + Math.floor(i / 4) * 22, y = by - (i % 4) * 6;
+        el("ellipse", { cx: x, cy: y + 2, rx: 10, ry: 4.5, fill: "var(--contour)" }, bg);
+        el("ellipse", { cx: x, cy: y, rx: 10, ry: 4.5, fill: "var(--gold)", stroke: "var(--contour)", "stroke-width": 1 }, bg);
+      } else {
+        const x = bx + (i % 4) * 15 - 8, y = by + Math.floor(i / 4) * 14, s = 6;
+        el("path", { d: `M${x},${y + s * 0.9} C${x - s * 1.4},${y - s * 0.1} ${x - s * 0.6},${y - s * 1.2} ${x},${y - s * 0.35} C${x + s * 0.6},${y - s * 1.2} ${x + s * 1.4},${y - s * 0.1} ${x},${y + s * 0.9}Z`, fill: "var(--heart)" }, bg);
+      }
+    }
+    const bt = el("text", { class: "label-gold", x: bx + 8, y: style === "coin" ? by + 22 : by - 14, "text-anchor": "middle" }, bg);
+    bt.textContent = `+${st.bonus}`;
+  }
+  if (st.penalty > 0) {
+    const style = (BONUS_STYLE[reg.id] || { shape: "coin" }).shape;
+    const n = Math.min(st.penalty, 12);
+    const px = reg.x - reg.r * 0.62, py = reg.y - reg.r * 0.48;
+    const pg = el("g", {}, g);
+    for (let i = 0; i < n; i++) {
+      if (style === "coin") {
+        const x = px - Math.floor(i / 4) * 22, y = py - (i % 4) * 6;
+        el("ellipse", { cx: x, cy: y + 2, rx: 10, ry: 4.5, fill: "var(--muted)" }, pg);
+        el("ellipse", { cx: x, cy: y, rx: 10, ry: 4.5, fill: "var(--line)", stroke: "var(--minus)", "stroke-width": 1.2 }, pg);
+        el("path", { d: `M${x - 4},${y} h8`, stroke: "var(--minus)", "stroke-width": 1.6 }, pg);
+      } else {
+        const x = px - (i % 4) * 15 + 8, y = py + Math.floor(i / 4) * 14, s = 6;
+        el("path", { d: `M${x},${y + s * 0.9} C${x - s * 1.4},${y - s * 0.1} ${x - s * 0.6},${y - s * 1.2} ${x},${y - s * 0.35} C${x + s * 0.6},${y - s * 1.2} ${x + s * 1.4},${y - s * 0.1} ${x},${y + s * 0.9}Z`, fill: "var(--muted)" }, pg);
+        el("path", { d: `M${x},${y - s * 0.35} l-2,3 l3,2 l-2,3`, stroke: "var(--paper)", "stroke-width": 1.3, fill: "none" }, pg);
+      }
+    }
+    const pt = el("text", { class: "label-minus", x: px - 8, y: style === "coin" ? py + 22 : py - 14, "text-anchor": "middle" }, pg);
+    pt.textContent = `−${st.penalty}`;
+  }
+  el("path", { class: "outline", d: blob(reg.x, reg.y, reg.r + 4, seed), "stroke-width": 3 }, g);
+
+  if (st.fog > 0) {
+    const fog = el("g", { class: "fog", opacity: st.fog }, g);
+    el("path", { d: blob(reg.x, reg.y, reg.r * 1.02, seed + 11, 14, 0.35), fill: "var(--fog)", filter: "url(#cloud)" }, fog);
+  }
+  const ly = reg.y + reg.r * 0.42;
+  const name = el("text", { class: "label", x: reg.x, y: ly, "text-anchor": "middle" }, g); name.textContent = reg.name;
+  if (reg.id === "reading" || reg.id === "english") { name.style.cursor = "pointer"; name.addEventListener("click", (e) => { e.stopPropagation(); reg.id === "reading" ? openReading() : openEnglish(); }); }
+  const sub = el("text", { class: "label-sub", x: reg.x, y: ly + 20, "text-anchor": "middle" }, g);
+  sub.textContent = reg.id === "base" ? baseSubText() : `Lv.${st.level} · 🌳${st.xp}` + (st.fog ? " · 🌫️" : "");
+
+  const pick = () => selectRegion(selected === reg.id ? null : reg.id);
+  g.addEventListener("click", pick);
+  g.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
+  return st;
+}
+
+function drawMapSvg() {
+  const svg = $("map");
+  svg.replaceChildren();
+  const defs = el("defs", {}, svg);
+  defs.innerHTML = MAP_DEFS;
+  el("rect", { x: 0, y: 0, width: 1200, height: 820, fill: "var(--terrain)", filter: "url(#ground)" }, svg);
+
+  el("path", { d: "M1200,470 C1130,470 1100,530 1050,560", fill: "none", stroke: "var(--water)", "stroke-width": 14, "stroke-linecap": "round" }, svg);
+  el("path", { d: "M640,820 C650,790 645,770 640,760", fill: "none", stroke: "var(--water)", "stroke-width": 8, "stroke-linecap": "round" }, svg);
+
+  const base = mapConf.regions.find((r) => r.id === "base") || { x: 600, y: 430 };
+  const stats = {};
+  mapConf.regions.forEach((r) => { stats[r.id] = regionStats(r); });
+  const trails = el("g", {}, svg);
+  mapConf.regions.filter((r) => r.id !== "base").sort((a, b) => stats[a.id].road - stats[b.id].road).forEach((r) => drawRoad(trails, base, r, stats[r.id].road));
+
+  (mapConf.frontier || []).forEach((p, i) => {
+    const g = el("g", { opacity: 0.8 }, svg);
+    el("path", { d: blob(p.x, p.y, 62, 900 + i), fill: "var(--land)", opacity: 0.6 }, g);
+    const t = el("text", { x: p.x, y: p.y + 5, "text-anchor": "middle", class: "label-sub" }, g); t.textContent = "◌ 미개척지";
+  });
+
+  mapConf.regions.forEach((r) => drawRegion(svg, r));
+
+  syncFauna();
+  const fg = el("g", { "pointer-events": "none" }, svg);
+  FA.list.forEach((a) => { const n = el("text", { "font-size": 22, "text-anchor": "middle" }, fg); n.textContent = a.sp.icon; a.node = n; });
+  faunaPoseSvg();
+  if (!REDUCED && !FA.svgRaf) FA.svgRaf = requestAnimationFrame(faunaSvgLoop);
+
+  el("rect", { x: 0, y: 0, width: 1200, height: 820, fill: "url(#vig)", "pointer-events": "none" }, svg);
+  const c = el("g", { transform: "translate(1135,195)" }, svg);
+  el("circle", { r: 26, fill: "none", stroke: "var(--contour)" }, c);
+  el("polygon", { points: "0,-34 6,0 0,6 -6,0", fill: "var(--ink)" }, c);
+  el("polygon", { points: "0,34 6,0 0,-6 -6,0", fill: "var(--contour)" }, c);
+  const nTxt = el("text", { y: -40, "text-anchor": "middle", class: "label-sub" }, c); nTxt.textContent = "N";
+
+  const total = tasks.filter((t) => t.done).length;
+  $("totalXp").textContent = `지금까지 끝낸 일 🌳 ${total}`;
+}
+
+/* ── 길: 0 풀숲 길 · 1 오솔길 · 2 포장도로 · 3 고속도로 (최근 14일 끝낸 일 수) ── */
+const ROAD_NAMES = ["풀숲 길", "흙길", "등불 길", "불 밝힌 큰길"];
+function drawRoad(parent, a, b, tier) {
+  const mx = (a.x + b.x) / 2 + (b.y - a.y) * 0.18, my = (a.y + b.y) / 2 - (b.x - a.x) * 0.18;
+  const d = `M${a.x},${a.y} Q${mx},${my} ${b.x},${b.y}`;
+  const g = el("g", { "stroke-linecap": "round", fill: "none" }, parent);
+  const at = (t) => [(1 - t) * (1 - t) * a.x + 2 * (1 - t) * t * mx + t * t * b.x, (1 - t) * (1 - t) * a.y + 2 * (1 - t) * t * my + t * t * b.y];
+  if (tier === 0) {
+    el("path", { d, stroke: "var(--overgrown)", "stroke-width": 3, opacity: 0.6 }, g);
+    const rand = rng(hash(b.id + "grass"));
+    for (let t = 0.12; t < 0.86; t += 0.045) {
+      const [x, y] = at(t); const ox = (rand() - 0.5) * 12, oy = (rand() - 0.5) * 10;
+      el("path", { d: `M${x + ox},${y + oy} l-3,-8 M${x + ox + 2},${y + oy} l1,-10 M${x + ox + 4},${y + oy} l4,-7`, stroke: "var(--overgrown)", "stroke-width": 1.6 }, g);
+    }
+    return;
+  }
+  if (tier === 1) {
+    el("path", { d, stroke: "var(--road-edge)", "stroke-width": 7, opacity: 0.55 }, g);
+    el("path", { d, stroke: "var(--road)", "stroke-width": 5 }, g);
+    return;
+  }
+  if (tier === 2) {
+    el("path", { d, stroke: "var(--road-edge)", "stroke-width": 13 }, g);
+    el("path", { d, stroke: "var(--road)", "stroke-width": 10 }, g);
+    el("path", { d, stroke: "var(--road-edge)", "stroke-width": 1.2, "stroke-dasharray": "10 10", opacity: 0.7 }, g);
+    return;
+  }
+  el("path", { d, stroke: "var(--road-edge)", "stroke-width": 22 }, g);
+  el("path", { d, stroke: "var(--asphalt)", "stroke-width": 18 }, g);
+  el("path", { d, stroke: "var(--lane)", "stroke-width": 1.4, transform: "translate(0,-5)", opacity: 0.85 }, g);
+  el("path", { d, stroke: "var(--lane)", "stroke-width": 1.4, transform: "translate(0,5)", opacity: 0.85 }, g);
+  el("path", { d, stroke: "var(--flower)", "stroke-width": 2, "stroke-dasharray": "12 10" }, g);
+}
+
+/* ── 3D 실사 지도 (Three.js): 해질녘, 안개 낀 산, 산을 비추는 잔잔한 물. WebGL이 안 되면 위의 그림 지도로 돌아갑니다. ── */
+const S3 = { ok: false, clouds: [], sparks: [], tags: [] };
+const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const WX = (x) => (x - 600) / 10, WZ = (y) => (y - 410) / 10;
+const KIND_TINT = { forest: 0x2c4a20, jungle: 0x234019, plateau: 0x76673f, hill: 0x40562a, meadow: 0x62823a, village: 0x55663a, camp: 0x6a6345, lake: 0x4a5a32 };
+function vnoise(x, y) {
+  const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+  const r = (a, b) => { let h = Math.imul(a, 374761393) + Math.imul(b, 668265263); h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
+  const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+  const a = r(xi, yi), b = r(xi + 1, yi), c = r(xi, yi + 1), d = r(xi + 1, yi + 1);
+  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+}
+function fbm(x, y, o = 5) { let s = 0, a = 0.5, f = 1, n = 0; for (let i = 0; i < o; i++) { s += a * vnoise(x * f + i * 17.3, y * f - i * 9.1); n += a; a *= 0.5; f *= 2.03; } return s / n; }
+function sstep(e0, e1, x) { const t = Math.max(0, Math.min(1, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); }
+function distSeg(px, pz, ax, az, bx, bz) { const dx = bx - ax, dz = bz - az; const t = Math.max(0, Math.min(1, ((px - ax) * dx + (pz - az) * dz) / (dx * dx + dz * dz))); return Math.hypot(px - ax - t * dx, pz - az - t * dz); }
+function worldRegions() { return mapConf.regions.map((r) => ({ id: r.id, kind: r.kind, x: WX(r.x), z: WZ(r.y), r: r.r / 10 })); }
+function makeHeight() {
+  const regs = worldRegions(), lake = regs.find((g) => g.kind === "lake");
+  return function H(x, z) {
+    let y = 0.9 + (fbm(x * 0.045, z * 0.045) - 0.5) * 2.4;
+    const ex = Math.max(0, Math.abs(x) - 56), ez = Math.max(0, -36 - z), m = Math.hypot(ex, ez * 1.2);
+    if (m > 0) { const ridge = 1 - Math.abs(fbm(x * 0.035 + 40, z * 0.035) * 2 - 1); y += sstep(0, 30, m) * (10 + ridge * 22 + fbm(x * 0.12, z * 0.12) * 4); }
+    y -= sstep(40, 47, z) * 4.5;
+    if (lake) y -= sstep(3.2, 0.8, distSeg(x, z, lake.x, lake.z, lake.x + 9, 52)) * 3.2;
+    for (const g of regs) {
+      const d = Math.hypot(x - g.x, (z - g.z) / 0.86);
+      if (d > g.r * 1.3) continue;
+      const f = sstep(g.r * 1.2, g.r * 0.35, d);
+      if (g.kind === "plateau") y += 6.5 * sstep(g.r, g.r * 0.7, d) + f * fbm(x * 0.3, z * 0.3) * 0.8;
+      else if (g.kind === "hill") y += 5 * Math.pow(f, 1.4);
+      else if (g.kind === "forest") y += f * 3.6 * fbm(x * 0.2, z * 0.2);
+      else if (g.kind === "jungle") y += f * (1.5 + 3 * (1 - Math.abs(fbm(x * 0.18, z * 0.18) * 2 - 1)));
+      else if (g.kind === "lake") y -= 4.2 * sstep(g.r * 0.95, g.r * 0.4, d);
+      else y += (0.75 + fbm(x * 0.5, z * 0.5) * 0.3 - y) * f;
+    }
+    return y;
+  };
+}
+function canvasTex(w, h, paint) { const c = document.createElement("canvas"); c.width = w; c.height = h; paint(c.getContext("2d")); return new THREE.CanvasTexture(c); }
+function glowTex(inner, outer) { return canvasTex(64, 64, (g) => { const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, inner); gr.addColorStop(0.22, outer); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); }); }
+function cloudTex() { return canvasTex(128, 128, (g) => { const rand = rng(77); for (let i = 0; i < 28; i++) { const x = 28 + rand() * 72, y = 36 + rand() * 56, r = 14 + rand() * 26; const gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, "rgba(255,255,255,0.22)"); gr.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); } }); }
+function skyTex() { return canvasTex(4, 256, (g) => { const gr = g.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, "#0a1218"); gr.addColorStop(0.12, "#1c2b33"); gr.addColorStop(0.24, "#6e5f4c"); gr.addColorStop(0.32, "#3a4645"); gr.addColorStop(1, "#3a4645"); g.fillStyle = gr; g.fillRect(0, 0, 4, 256); }); }
+function disposeTree(o) { o.traverse((n) => { if (n.geometry) n.geometry.dispose(); if (n.material) (Array.isArray(n.material) ? n.material : [n.material]).forEach((m) => m.dispose()); }); }
+
+/* ── 지역 친구들: 지역마다 어울리는 동물이 살며 제 땅을 돌아다니고, 가끔 길을 따라 베이스캠프에 놀러 갑니다.
+   새 지역은 kind에 맞는 동물이 자동으로 정해집니다. 레벨이 오르면 친구가 늘어납니다. ── */
+const FAUNA = {
+  forest: { key: "fox", name: "여우", icon: "🦊", move: "walk", speed: 2.4 },
+  plateau: { key: "goat", name: "산양", icon: "🐐", move: "walk", speed: 1.8 },
+  jungle: { key: "monkey", name: "원숭이", icon: "🐒", move: "hop", speed: 2.2 },
+  lake: { key: "duck", name: "오리", icon: "🦆", move: "swim", speed: 1.4 },
+  meadow: { key: "rabbit", name: "토끼", icon: "🐇", move: "hop", speed: 2.6 },
+  village: { key: "dog", name: "강아지", icon: "🐕", move: "walk", speed: 2.6 },
+  hill: { key: "owl", name: "부엉이", icon: "🦉", move: "hop", speed: 1.5 },
+  camp: { key: "raccoon", name: "너구리", icon: "🦝", move: "walk", speed: 2 }
+};
+const FA = { list: [], regs: {}, last: 0, svgRaf: 0 };
+function faunaCount(reg, st) { return reg.kind === "camp" ? 2 : 2 + Math.min(2, Math.floor((st.level - 1) / 2)); }
+function faunaGround(x, z) { return S3.H ? S3.H(x, z) : 1; }
+function faunaSpot(regId, kind) {
+  const g = FA.regs[regId]; if (!g) return { x: 0, z: 0 };
+  const water = kind === "lake";
+  for (let k = 0; k < 28; k++) {
+    const a = Math.random() * Math.PI * 2, d = Math.sqrt(Math.random()) * g.r * (water ? 0.5 : g.kind === "camp" ? 0.55 : 0.6 + k * 0.02);
+    const x = g.x + Math.cos(a) * d, z = g.z + Math.sin(a) * d * 0.86, y = faunaGround(x, z);
+    if (water ? (!S3.H || y < -0.3) : y > 0.25) return { x, z };
+  }
+  return { x: g.x, z: g.z };
+}
+/* 베이스캠프 → 지역으로 가는 길(지도의 길과 같은 곡선) */
+function faunaRoad(regId) {
+  const a = FA.regs.base, b = FA.regs[regId]; if (!a || !b) return [];
+  const mx = (a.x + b.x) / 2 + (b.z - a.z) * 0.18, mz = (a.z + b.z) / 2 - (b.x - a.x) * 0.18, pts = [];
+  for (let i = 1; i < 12; i++) { const t = i / 12; pts.push({ x: (1 - t) ** 2 * a.x + 2 * (1 - t) * t * mx + t * t * b.x, z: (1 - t) ** 2 * a.z + 2 * (1 - t) * t * mz + t * t * b.z, trip: true }); }
+  return pts;
+}
+function faunaPlan(a) {
+  const base = FA.regs.base, others = Object.keys(FA.regs).filter((id) => id !== "base");
+  if (base && a.reg === "base" && others.length && Math.random() < 0.2) {
+    const to = others[Math.floor(Math.random() * others.length)], road = faunaRoad(to);
+    a.plan = [...road, { ...faunaSpot(to, "land"), wait: 2 + Math.random() * 3 }, { ...faunaSpot(to, "land"), wait: 1.5 }, ...road.slice().reverse(), { x: base.x, z: base.z, trip: true, wait: 1 }];
+  } else if (base && a.reg !== "base" && Math.random() < 0.15) {
+    a.plan = [...faunaRoad(a.reg).reverse(), { ...faunaSpot("base", "land"), wait: 2.5 + Math.random() * 4 }, { ...faunaSpot("base", "land"), wait: 2 }, ...faunaRoad(a.reg)];
+  } else a.plan = [{ ...faunaSpot(a.reg, a.kind), wait: 1 + Math.random() * 4 }];
+}
+function faunaDrop(a) {
+  if (a.mesh) { if (S3.fauna) S3.fauna.remove(a.mesh); disposeTree(a.mesh); a.mesh = null; }
+  if (a.node) { a.node.remove(); a.node = null; }
+}
+function syncFauna() {
+  FA.regs = {}; worldRegions().forEach((g) => { FA.regs[g.id] = g; });
+  const want = [];
+  mapConf.regions.forEach((reg) => { if (!FAUNA[reg.kind]) return; const n = faunaCount(reg, regionStats(reg)); for (let i = 0; i < n; i++) want.push(reg.id + ":" + i); });
+  const keep = [];
+  FA.list.forEach((a) => { if (want.includes(a.id) && FA.regs[a.reg] && FA.regs[a.reg].kind === a.kind) keep.push(a); else faunaDrop(a); });
+  want.forEach((id) => {
+    if (keep.some((a) => a.id === id)) return;
+    const reg = id.slice(0, id.lastIndexOf(":")), kind = FA.regs[reg].kind, p = faunaSpot(reg, kind);
+    keep.push({ id, reg, kind, sp: FAUNA[kind], x: p.x, z: p.z, h: Math.random() * 6.28, flip: 1, plan: [], wait: Math.random() * 3, phase: Math.random() * 6, moving: false });
+  });
+  FA.list = keep;
+}
+function faunaTick(dt) {
+  FA.list.forEach((a) => {
+    if (a.wait > 0) { a.wait -= dt; a.moving = false; return; }
+    if (!a.plan.length) faunaPlan(a);
+    const tg = a.plan[0]; if (!tg) return;
+    const dx = tg.x - a.x, dz = tg.z - a.z, d = Math.hypot(dx, dz);
+    if (d < 0.2) { a.plan.shift(); a.wait = tg.wait || 0; return; }
+    const v = a.sp.speed * (tg.trip ? 1.3 : 1), step = Math.min(d, v * dt);
+    a.x += dx / d * step; a.z += dz / d * step;
+    let dh = Math.atan2(dx, dz) - a.h; dh = Math.atan2(Math.sin(dh), Math.cos(dh)); a.h += dh * Math.min(1, dt * 7);
+    a.phase += dt * v * 4.2; a.moving = true;
+  });
+}
+/* 낮은 폴리곤 동물: 앞쪽이 +z, 발바닥이 y=0 */
+function makeAnimal(key) {
+  const g = new THREE.Group(), u = { legs: [], s: 1.6, tail: null, head: null };
+  const mat = (c) => new THREE.MeshLambertMaterial({ color: c, emissive: new THREE.Color(c).multiplyScalar(0.22) });
+  const add = (p, geo, c, x, y, z, sx = 1, sy = 1, sz = 1) => { const m = new THREE.Mesh(geo, mat(c)); m.position.set(x, y, z); m.scale.set(sx, sy, sz); p.add(m); return m; };
+  const ball = (p, r, c, x, y, z, sx, sy, sz) => add(p, new THREE.SphereGeometry(r, 10, 8), c, x, y, z, sx, sy, sz);
+  const cone = (p, r, h, c, x, y, z, rx = 0, rz = 0) => { const m = add(p, new THREE.ConeGeometry(r, h, 6), c, x, y, z); m.rotation.set(rx, 0, rz); return m; };
+  const box = (p, w, h, d, c, x, y, z) => add(p, new THREE.BoxGeometry(w, h, d), c, x, y, z);
+  const pivot = (p, x, y, z) => { const o = new THREE.Group(); o.position.set(x, y, z); p.add(o); return o; };
+  const leg = (x, z, h, r, c) => { const o = pivot(g, x, h, z); const geo = new THREE.CylinderGeometry(r, r * 0.8, h, 5); geo.translate(0, -h / 2, 0); add(o, geo, c, 0, 0, 0); u.legs.push(o); };
+  const quad = (h, w, len, c, r = 0.06) => { leg(-w, len, h, r, c); leg(w, len, h, r, c); leg(-w, -len, h, r, c); leg(w, -len, h, r, c); };
+  const eyes = (p, y, z, x, r = 0.03) => { ball(p, r, 0x111111, -x, y, z); ball(p, r, 0x111111, x, y, z); };
+  let h, t;
+  if (key === "fox") {
+    u.s = 1.7; quad(0.32, 0.13, 0.26, 0x2b1d14);
+    ball(g, 1, 0xd8742a, 0, 0.46, 0, 0.22, 0.2, 0.44); ball(g, 1, 0xf1e6d6, 0, 0.42, 0.3, 0.14, 0.14, 0.14);
+    h = pivot(g, 0, 0.6, 0.42); ball(h, 0.17, 0xd8742a, 0, 0, 0.02);
+    cone(h, 0.08, 0.2, 0xf1e6d6, 0, -0.03, 0.2, Math.PI / 2); ball(h, 0.03, 0x111111, 0, -0.03, 0.3);
+    cone(h, 0.06, 0.16, 0xc0601c, -0.09, 0.17, 0); cone(h, 0.06, 0.16, 0xc0601c, 0.09, 0.17, 0); eyes(h, 0.04, 0.14, 0.07);
+    t = pivot(g, 0, 0.5, -0.4); ball(t, 1, 0xd8742a, 0, -0.05, -0.25, 0.12, 0.12, 0.3); ball(t, 1, 0xf1e6d6, 0, -0.08, -0.52, 0.08, 0.08, 0.1);
+  } else if (key === "goat") {
+    u.s = 1.8; quad(0.38, 0.13, 0.24, 0xcfc6b4, 0.055);
+    ball(g, 1, 0xe9e3d6, 0, 0.52, 0, 0.22, 0.22, 0.4);
+    h = pivot(g, 0, 0.72, 0.38); ball(h, 0.14, 0xe9e3d6, 0, 0, 0.04, 1, 1, 1.3);
+    cone(h, 0.035, 0.24, 0x5e574d, -0.06, 0.15, -0.05, -0.7); cone(h, 0.035, 0.24, 0x5e574d, 0.06, 0.15, -0.05, -0.7);
+    cone(h, 0.04, 0.12, 0xd8d0c0, 0, -0.14, 0.12, Math.PI); box(h, 0.34, 0.03, 0.05, 0xd8d0c0, 0, 0.03, 0); eyes(h, 0.04, 0.13, 0.07);
+    t = pivot(g, 0, 0.62, -0.38); cone(t, 0.04, 0.1, 0xe9e3d6, 0, 0.04, 0);
+  } else if (key === "dog") {
+    quad(0.3, 0.12, 0.22, 0xa87a44);
+    ball(g, 1, 0xc89a5a, 0, 0.42, 0, 0.2, 0.18, 0.36); box(g, 0.3, 0.06, 0.08, 0xc23b2f, 0, 0.52, 0.28);
+    h = pivot(g, 0, 0.6, 0.34); ball(h, 0.16, 0xc89a5a); ball(h, 1, 0xe6d2b0, 0, -0.04, 0.15, 0.08, 0.07, 0.1); ball(h, 0.03, 0x111111, 0, -0.01, 0.25);
+    box(h, 0.05, 0.16, 0.09, 0x7a5532, -0.15, -0.04, 0); box(h, 0.05, 0.16, 0.09, 0x7a5532, 0.15, -0.04, 0); eyes(h, 0.04, 0.13, 0.07);
+    t = pivot(g, 0, 0.5, -0.34); cone(t, 0.035, 0.22, 0xc89a5a, 0, 0.1, -0.03, -0.5);
+  } else if (key === "raccoon") {
+    quad(0.24, 0.12, 0.2, 0x2e2b28);
+    ball(g, 1, 0x8a8580, 0, 0.36, 0, 0.22, 0.19, 0.34);
+    h = pivot(g, 0, 0.5, 0.32); ball(h, 0.15, 0x8a8580, 0, 0, 0, 1.1, 0.95, 1); box(h, 0.27, 0.07, 0.08, 0x1e1c1a, 0, 0.02, 0.11);
+    ball(h, 1, 0xe8e2d8, 0, -0.05, 0.13, 0.07, 0.05, 0.07); cone(h, 0.05, 0.09, 0x6a6560, -0.09, 0.15, 0); cone(h, 0.05, 0.09, 0x6a6560, 0.09, 0.15, 0);
+    t = pivot(g, 0, 0.38, -0.32); for (let i = 0; i < 4; i++) ball(t, 1, i % 2 ? 0x2a2826 : 0xa9a49c, 0, -0.03 * i, -0.08 - 0.11 * i, 0.09, 0.09, 0.07);
+  } else if (key === "monkey") {
+    quad(0.3, 0.12, 0.18, 0x5a3a22);
+    ball(g, 1, 0x7a5030, 0, 0.44, 0, 0.19, 0.22, 0.28);
+    h = pivot(g, 0, 0.68, 0.26); ball(h, 0.15, 0x7a5030); ball(h, 1, 0xd9b58c, 0, -0.01, 0.1, 0.11, 0.1, 0.07);
+    ball(h, 0.05, 0xd9b58c, -0.15, 0.02, 0); ball(h, 0.05, 0xd9b58c, 0.15, 0.02, 0); eyes(h, 0.03, 0.17, 0.05);
+    t = pivot(g, 0, 0.45, -0.26);
+    const curve = new THREE.CatmullRomCurve3([[0, 0, 0], [0, 0.1, -0.2], [0, 0.35, -0.3], [0, 0.5, -0.18], [0, 0.45, -0.08]].map((p) => new THREE.Vector3(...p)));
+    add(t, new THREE.TubeGeometry(curve, 16, 0.025, 5, false), 0x5a3a22, 0, 0, 0);
+  } else if (key === "rabbit") {
+    quad(0.14, 0.1, 0.14, 0xd8d0c2, 0.05);
+    ball(g, 1, 0xe6dfd2, 0, 0.27, -0.02, 0.17, 0.17, 0.24);
+    h = pivot(g, 0, 0.42, 0.18); ball(h, 0.12, 0xe6dfd2);
+    [-0.05, 0.05].forEach((x) => { box(h, 0.05, 0.26, 0.025, 0xe6dfd2, x, 0.22, -0.02); box(h, 0.026, 0.2, 0.01, 0xe7a6b0, x, 0.22, -0.005); });
+    eyes(h, 0.02, 0.1, 0.06, 0.022);
+    t = pivot(g, 0, 0.3, -0.25); ball(t, 0.07, 0xffffff, 0, 0, 0);
+  } else if (key === "owl") {
+    u.s = 1.5; leg(-0.07, 0.02, 0.08, 0.025, 0xe09a3a); leg(0.07, 0.02, 0.08, 0.025, 0xe09a3a);
+    ball(g, 1, 0x7d5e3c, 0, 0.34, 0, 0.2, 0.27, 0.19); ball(g, 1, 0xcbb08a, 0, 0.3, 0.08, 0.15, 0.2, 0.13);
+    h = pivot(g, 0, 0.62, 0); ball(h, 0.17, 0x7d5e3c, 0, 0, 0, 1.1, 0.9, 1);
+    [-0.07, 0.07].forEach((x) => { ball(h, 0.065, 0xe8dcc0, x, 0, 0.12, 1, 1, 0.4); ball(h, 0.03, 0x111111, x, 0, 0.15); });
+    cone(h, 0.025, 0.07, 0xe09a3a, 0, -0.05, 0.16, Math.PI); cone(h, 0.035, 0.12, 0x5a4028, -0.1, 0.15, 0, 0, 0.3); cone(h, 0.035, 0.12, 0x5a4028, 0.1, 0.15, 0, 0, -0.3);
+  } else { // duck
+    leg(-0.06, 0, 0.1, 0.02, 0xe89a2a); leg(0.06, 0, 0.1, 0.02, 0xe89a2a);
+    ball(g, 1, 0x9a8a72, 0, 0.2, 0, 0.17, 0.13, 0.26); cone(g, 0.06, 0.12, 0x5a4e40, 0, 0.25, -0.26, -1.2);
+    h = pivot(g, 0, 0.36, 0.18); ball(h, 0.1, 0x2f6b3a); ball(h, 1, 0xffffff, 0, -0.09, 0, 0.075, 0.02, 0.075);
+    box(h, 0.08, 0.03, 0.12, 0xe89a2a, 0, -0.02, 0.12); eyes(h, 0.02, 0.08, 0.05, 0.018);
+  }
+  u.head = h || null; u.tail = t || null;
+  g.scale.setScalar(u.s); g.userData = u;
+  return g;
+}
+function faunaPose3D(t) {
+  FA.list.forEach((a) => {
+    const m = a.mesh; if (!m) return;
+    const u = m.userData, gy = faunaGround(a.x, a.z);
+    let y = Math.max(0, gy), bob = 0, roll = 0, swing = 0;
+    if (gy < 0) { y = -0.12 * u.s; bob = Math.sin(t * 2 + a.phase) * 0.04; swing = a.moving ? Math.sin(a.phase) * 0.6 : 0; }
+    else if (a.moving) {
+      if (a.sp.move === "hop") bob = Math.abs(Math.sin(a.phase * 0.55)) * 0.45 * u.s;
+      else { bob = Math.abs(Math.sin(a.phase)) * 0.05 * u.s; swing = Math.sin(a.phase) * 0.7; }
+      if (a.sp.move === "swim") roll = Math.sin(a.phase) * 0.18;
+    } else bob = Math.sin(t * 1.6 + a.phase) * 0.015 * u.s;
+    m.position.set(a.x, y + bob, a.z); m.rotation.set(0, a.h, roll);
+    u.legs.forEach((l, i) => { l.rotation.x = (i % 2 ? 1 : -1) * (i < 2 ? 1 : -1) * swing; });
+    if (u.tail) u.tail.rotation.y = Math.sin(t * (a.moving ? 9 : 3) + a.phase) * 0.35;
+    if (u.head) u.head.rotation.x = a.moving ? 0 : Math.sin(t * 0.8 + a.phase) * 0.18;
+  });
+}
+function faunaPoseSvg() {
+  FA.list.forEach((a) => {
+    if (!a.node) return;
+    const X = a.x * 10 + 600, Y = a.z * 10 + 410, s = Math.sin(a.h);
+    if (Math.abs(s) > 0.25) a.flip = s > 0 ? -1 : 1;
+    const hop = !a.moving ? 0 : a.sp.move === "hop" ? -Math.abs(Math.sin(a.phase * 0.55)) * 9 : -Math.abs(Math.sin(a.phase)) * 2;
+    a.node.setAttribute("transform", `translate(${X.toFixed(1)},${(Y + hop).toFixed(1)}) scale(${a.flip},1)`);
+  });
+}
+function faunaSvgLoop(time) {
+  FA.svgRaf = 0;
+  if (S3.ok) return;
+  if (!document.hidden) { const t = time / 1000, dt = FA.last ? Math.min(0.1, Math.max(0, t - FA.last)) : 0; FA.last = t; faunaTick(dt); faunaPoseSvg(); }
+  FA.svgRaf = requestAnimationFrame(faunaSvgLoop);
+}
+
+function init3D() {
+  if (!window.THREE) return false;
+  const box = $("scene");
+  box.hidden = false;
+  try {
+    const renderer = new THREE.WebGLRenderer({ canvas: $("sceneCanvas"), antialias: true });
+    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+    renderer.localClippingEnabled = true;
+    const scene = new THREE.Scene();
+    scene.background = skyTex();
+    scene.fog = new THREE.FogExp2(0x3a4645, 0.0068);
+    const camera = new THREE.PerspectiveCamera(36, 1.7, 1, 700);
+    scene.add(new THREE.HemisphereLight(0x8a9fae, 0x141a11, 0.68));
+    const sun = new THREE.DirectionalLight(0xff9f62, 1.1); sun.position.set(-60, 28, -90); scene.add(sun);
+    const fill = new THREE.DirectionalLight(0x7088a2, 0.35); fill.position.set(30, 50, 70); scene.add(fill);
+    Object.assign(S3, { ok: true, renderer, scene, camera, terrainKey: "", k: 1, w: 1, h: 1, px: 0, py: 0, tx: 0, ty: 0, visible: true, raf: 0,
+      glow: glowTex("rgba(255,240,200,1)", "rgba(255,170,80,0.42)"), sparkle: glowTex("rgba(255,244,200,1)", "rgba(240,190,80,0.5)"), cloud: cloudTex() });
+    const fit = () => {
+      const w = box.clientWidth || 800, h = box.clientHeight || 480;
+      S3.w = w; S3.h = h; renderer.setSize(w, h, false);
+      camera.aspect = w / h; S3.k = Math.pow(Math.max(1, 1.6 / camera.aspect), 0.85); camera.updateProjectionMatrix(); kick3D();
+    };
+    fit();
+    if (window.ResizeObserver) new ResizeObserver(fit).observe(box); else window.addEventListener("resize", fit);
+    if (window.IntersectionObserver) new IntersectionObserver((es) => { S3.visible = es[0].isIntersecting; kick3D(); }).observe(box);
+    const cv = $("sceneCanvas");
+    /* 시점 조작: 드래그=돌리기, 오른쪽/Shift 드래그=옮기기, 휠·핀치=확대 */
+    const V0 = { az: 0, el: 0.435, dist: 109, tx: 0, tz: -9 };
+    S3.view = { ...V0 }; S3.goal = { ...V0 };
+    const clampGoal = () => { const g = S3.goal; g.el = Math.max(0.12, Math.min(1.45, g.el)); g.dist = Math.max(28, Math.min(170, g.dist)); g.tx = Math.max(-70, Math.min(70, g.tx)); g.tz = Math.max(-55, Math.min(48, g.tz)); kick3D(); };
+    const pan = (dx, dy) => { const g = S3.goal, s = g.dist * S3.k * 0.0016, ca = Math.cos(g.az), sa = Math.sin(g.az); g.tx -= (dx * ca + dy * sa) * s; g.tz -= (-dx * sa + dy * ca) * s; };
+    const zoom = (f) => { S3.goal.dist *= f; clampGoal(); };
+    const ptrs = new Map(); let mode = null, moved = 0, last = null, pinch = null;
+    cv.addEventListener("contextmenu", (e) => e.preventDefault());
+    cv.addEventListener("pointerdown", (e) => {
+      cv.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (ptrs.size === 1) { mode = e.button === 2 || e.shiftKey ? "pan" : "rotate"; moved = 0; last = { x: e.clientX, y: e.clientY }; }
+      if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 }; mode = "pinch"; }
+      cv.classList.add("dragging");
+    });
+    cv.addEventListener("pointermove", (e) => {
+      if (!ptrs.has(e.pointerId)) return;
+      ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (mode === "pinch" && ptrs.size >= 2) {
+        const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+        if (pinch.d > 0) zoom(pinch.d / Math.max(1, d));
+        pan(mx - pinch.mx, my - pinch.my); pinch = { d, mx, my }; moved += 10; clampGoal(); return;
+      }
+      if (!last) return;
+      const dx = e.clientX - last.x, dy = e.clientY - last.y; last = { x: e.clientX, y: e.clientY }; moved += Math.abs(dx) + Math.abs(dy);
+      if (mode === "pan") pan(dx, dy); else { S3.goal.az -= dx * 0.006; S3.goal.el += dy * 0.004; }
+      clampGoal();
+    });
+    const up = (e) => { ptrs.delete(e.pointerId); if (ptrs.size === 0) { mode = null; last = null; pinch = null; cv.classList.remove("dragging"); } else if (ptrs.size === 1) { const p = [...ptrs.values()][0]; mode = "rotate"; last = { ...p }; pinch = null; } };
+    cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+    cv.addEventListener("wheel", (e) => { e.preventDefault(); zoom(Math.exp(e.deltaY * 0.0012)); }, { passive: false });
+    $("zoomIn").addEventListener("click", () => zoom(0.8));
+    $("zoomOut").addEventListener("click", () => zoom(1.25));
+    $("viewReset").addEventListener("click", () => { S3.goal = { ...V0 }; kick3D(); });
+    const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+    cv.addEventListener("click", (e) => {
+      if (!S3.land || moved > 6) return;
+      ndc.set(e.offsetX / S3.w * 2 - 1, -(e.offsetY / S3.h * 2 - 1));
+      ray.setFromCamera(ndc, camera);
+      const hit = ray.intersectObject(S3.land)[0]; if (!hit) return;
+      const p = hit.point;
+      const g = worldRegions().map((g) => ({ g, d: Math.hypot(p.x - g.x, (p.z - g.z) / 0.86) / g.r })).filter((x) => x.d < 1.05).sort((a, b) => a.d - b.d)[0];
+      if (g) selectRegion(selected === g.g.id ? null : g.g.id);
+    });
+    return true;
+  } catch (e) {
+    S3.ok = false; box.hidden = true; return false;
+  }
+}
+function kick3D() { if (S3.ok && !S3.raf) S3.raf = requestAnimationFrame(loop3D); }
+function loop3D(time) {
+  S3.raf = 0;
+  if (!S3.visible || document.hidden) return;
+  render3D(time);
+  if (!REDUCED) S3.raf = requestAnimationFrame(loop3D);
+}
+document.addEventListener("visibilitychange", kick3D);
+function render3D(time) {
+  const { renderer, scene, camera } = S3, t = (time || performance.now()) / 1000, k = S3.k;
+  const v0 = S3.view, g = S3.goal, ease = REDUCED ? 1 : 0.18;
+  let still = true;
+  for (const key of ["az", "el", "dist", "tx", "tz"]) { const d = g[key] - v0[key]; if (Math.abs(d) > 1e-4) still = false; v0[key] += d * ease; }
+  const d = v0.dist * k, ce = Math.cos(v0.el);
+  camera.position.set(v0.tx + Math.sin(v0.az) * ce * d, Math.sin(v0.el) * d, v0.tz + Math.cos(v0.az) * ce * d);
+  camera.lookAt(v0.tx, 0, v0.tz);
+  if (REDUCED && !still) kick3D();
+  if (!REDUCED) {
+    S3.clouds.forEach((c) => { c.position.x = c.userData.x0 + Math.sin(t * 0.12 + c.userData.ph) * 1.8; });
+    S3.sparks.forEach((m, i) => { m.opacity = 0.55 + 0.45 * Math.sin(t * 2.2 + i * 1.7); });
+    const dt = FA.last ? Math.min(0.1, Math.max(0, t - FA.last)) : 0; FA.last = t; faunaTick(dt);
+  }
+  faunaPose3D(t);
+  renderer.render(scene, camera);
+  const v = S3.v || (S3.v = new THREE.Vector3());
+  S3.tags.forEach(({ node, pos }) => {
+    v.copy(pos).project(camera);
+    const vis = v.z < 1 && Math.abs(v.x) < 1.05 && Math.abs(v.y) < 1.05;
+    node.style.visibility = vis ? "" : "hidden";
+    if (!vis) return;
+    if (!node._w) { node._w = node.offsetWidth; node._h = node.offsetHeight; }
+    /* 정수 픽셀에 놓아야 글자가 번지지 않습니다 */
+    node.style.left = Math.round((v.x + 1) / 2 * S3.w - node._w / 2) + "px";
+    node.style.top = Math.round((1 - v.y) / 2 * S3.h - node._h) + "px";
+  });
+}
+function addLamp(grp, x, y, z, s, color = 0xffd59a, pole = true) {
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: S3.glow, color, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+  sp.scale.set(2.6 * s, 2.6 * s, 1); sp.position.set(x, y, z); grp.add(sp);
+  if (pole) { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, y - S3.H(x, z) + 0.1, 5), new THREE.MeshLambertMaterial({ color: 0x2a2620 })); p.position.set(x, (y + S3.H(x, z)) / 2 - 0.1, z); grp.add(p); }
+}
+function addCloud(grp, x, y, z, s, op) {
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: S3.cloud, color: 0xa9b4b4, transparent: true, opacity: op, depthWrite: false }));
+  sp.scale.set(s, s * 0.62, 1); sp.position.set(x, y, z); sp.userData = { x0: x, ph: x * 0.37 + z }; grp.add(sp); S3.clouds.push(sp);
+}
+function treeMeshes(list) {
+  const out = [], m = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), p = new THREE.Vector3(), col = new THREE.Color();
+  const make = (items, geo, sy) => {
+    if (!items.length) return;
+    const im = new THREE.InstancedMesh(geo, new THREE.MeshLambertMaterial({ color: 0xffffff }), items.length);
+    items.forEach((t, i) => { p.set(t.x, S3.H(t.x, t.z) - 0.15, t.z); sc.set(t.s, t.s * sy, t.s); m.compose(p, q, sc); im.setMatrixAt(i, m); im.setColorAt(i, col.setHex(t.c)); });
+    out.push(im);
+  };
+  const cone = new THREE.ConeGeometry(0.55, 2.3, 7); cone.translate(0, 1.15, 0);
+  const ball = new THREE.SphereGeometry(0.85, 8, 6); ball.translate(0, 0.9, 0);
+  make(list.filter((t) => t.kind === "pine"), cone, 1);
+  make(list.filter((t) => t.kind !== "pine"), ball, 0.85);
+  return out;
+}
+function buildTerrain() {
+  const key = JSON.stringify(mapConf.regions.map((r) => [r.kind, r.x, r.y, r.r]));
+  if (key === S3.terrainKey) return;
+  S3.terrainKey = key;
+  if (S3.static) { disposeTree(S3.static); S3.scene.remove(S3.static); }
+  const grp = new THREE.Group(); S3.static = grp; S3.scene.add(grp);
+  const H = makeHeight(); S3.H = H;
+  const regs = worldRegions();
+  const geo = new THREE.PlaneGeometry(260, 180, 240, 166); geo.rotateX(-Math.PI / 2); geo.translate(0, 0, -20);
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i++) pos.setY(i, H(pos.getX(i), pos.getZ(i)));
+  geo.computeVertexNormals();
+  const nrm = geo.attributes.normal, cols = new Float32Array(pos.count * 3), c = new THREE.Color(), t = new THREE.Color();
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i), slope = 1 - nrm.getY(i);
+    c.setHex(0x3d5729).lerp(t.setHex(0x26381b), fbm(x * 0.13, z * 0.13, 3));
+    for (const g of regs) { const d = Math.hypot(x - g.x, (z - g.z) / 0.86); if (d < g.r * 1.2) c.lerp(t.setHex(KIND_TINT[g.kind] ?? 0x4a5e30), sstep(g.r * 1.2, g.r * 0.5, d) * 0.75); }
+    c.lerp(t.setHex(0x3a3829), sstep(0.5, -0.3, y));
+    c.lerp(t.setHex(0x5b574d), sstep(0.18, 0.45, slope));
+    c.lerp(t.setHex(0x8a8984), sstep(16, 30, y) * 0.8);
+    const v = 0.85 + fbm(x * 0.6, z * 0.6, 2) * 0.3;
+    cols[i * 3] = c.r * v; cols[i * 3 + 1] = c.g * v; cols[i * 3 + 2] = c.b * v;
+  }
+  geo.setAttribute("color", new THREE.BufferAttribute(cols, 3));
+  const land = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ vertexColors: true, clippingPlanes: [new THREE.Plane(new THREE.Vector3(0, 1, 0), 0.02)] }));
+  grp.add(land); S3.land = land;
+  const mirror = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ vertexColors: true, color: 0x7a8a90, side: THREE.DoubleSide, clippingPlanes: [new THREE.Plane(new THREE.Vector3(0, -1, 0), 0)] }));
+  mirror.scale.y = -1; grp.add(mirror);
+  const water = new THREE.Mesh(new THREE.PlaneGeometry(420, 320).rotateX(-Math.PI / 2), new THREE.MeshPhongMaterial({ color: 0x0e2329, specular: 0xffc890, shininess: 70, transparent: true, opacity: 0.74 }));
+  water.position.set(0, 0, -20); grp.add(water);
+  // 배경 숲: 지역 밖 산비탈과 골짜기
+  const rand = rng(4242), slopeAt = (x, z) => Math.hypot(H(x + 0.6, z) - H(x - 0.6, z), H(x, z + 0.6) - H(x, z - 0.6)) / 1.2, wild = [];
+  for (let i = 0; i < 1700; i++) {
+    const x = -80 + rand() * 160, z = -62 + rand() * 106, y = H(x, z);
+    if (y < 0.6 || y > 19 || slopeAt(x, z) > 1.1 || fbm(x * 0.08, z * 0.08, 3) < 0.46) continue;
+    if (regs.some((g) => ["meadow", "village", "camp", "lake"].includes(g.kind) && Math.hypot(x - g.x, (z - g.z) / 0.86) < g.r * 0.95)) continue;
+    wild.push({ x, z, s: 0.7 + rand() * 0.6, kind: y > 5 || rand() < 0.5 ? "pine" : "round", c: rand() < 0.5 ? 0x23361a : 0x2c4321 });
+  }
+  treeMeshes(wild).forEach((m) => grp.add(m));
+  // 앞 호숫가 나무 데크와 등불 두 개
+  const dock = new THREE.Mesh(new THREE.BoxGeometry(5, 0.3, 13), new THREE.MeshLambertMaterial({ color: 0x5a3b26 }));
+  dock.position.set(-6, 0.32, 45); grp.add(dock);
+  [[-8.2, 51], [-3.8, 51]].forEach(([x, z]) => { addLamp(grp, x, 1.6, z, 1.1, 0xfff0d8, false); const p = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.3, 5), new THREE.MeshLambertMaterial({ color: 0x2a2620 })); p.position.set(x, 0.95, z); grp.add(p); });
+}
+function road3D(grp, a, b, tier) {
+  const ax = WX(a.x), az = WZ(a.y), bx = WX(b.x), bz = WZ(b.y);
+  const mx = (ax + bx) / 2 + (bz - az) * 0.18, mz = (az + bz) / 2 - (bx - ax) * 0.18, pts = [];
+  for (let i = 0; i <= 48; i++) { const t = i / 48, x = (1 - t) ** 2 * ax + 2 * (1 - t) * t * mx + t * t * bx, z = (1 - t) ** 2 * az + 2 * (1 - t) * t * mz + t * t * bz; pts.push(new THREE.Vector3(x, Math.max(0.08, S3.H(x, z)) + 0.18, z)); }
+  if (tier === 0) { const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineDashedMaterial({ color: 0x7d8a62, dashSize: 0.6, gapSize: 0.9, transparent: true, opacity: 0.55 })); l.computeLineDistances(); grp.add(l); return; }
+  grp.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 96, [0, 0.14, 0.24, 0.36][tier], 5, false), new THREE.MeshLambertMaterial({ color: [0, 0x8a7b5c, 0x9a8a66, 0x3b403a][tier] })));
+  const step = [0, 0, 6, 3][tier];
+  if (step) for (let i = 3; i < 46; i += step) addLamp(grp, pts[i].x + 0.5, pts[i].y + 0.8, pts[i].z, tier === 3 ? 0.85 : 0.65);
+}
+function update3D() {
+  buildTerrain();
+  syncFauna();
+  if (!S3.fauna) { S3.fauna = new THREE.Group(); S3.scene.add(S3.fauna); }
+  FA.list.forEach((a) => { if (!a.mesh) { a.mesh = makeAnimal(a.sp.key); S3.fauna.add(a.mesh); } });
+  if (S3.dyn) { disposeTree(S3.dyn); S3.scene.remove(S3.dyn); }
+  const grp = new THREE.Group(); S3.dyn = grp; S3.scene.add(grp);
+  S3.clouds = []; S3.sparks = [];
+  const H = S3.H, base = mapConf.regions.find((r) => r.id === "base") || { x: 600, y: 430 };
+  const tags = [];
+  mapConf.regions.forEach((reg) => {
+    const st = regionStats(reg), pot = potentialOf(reg), scale = sizeScale(reg, st);
+    const cx = WX(reg.x), cz = WZ(reg.y), R0 = reg.r / 10, R = R0 * scale, rand = rng(hash(reg.id + "3d")), growth = st.level - 1;
+    const pick = (spread, minD = 0) => { for (let k = 0; k < 24; k++) { const a = rand() * Math.PI * 2, d = (minD + Math.sqrt(rand()) * (1 - minD)) * R * spread, x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d * 0.86; if (H(x, z) > 0.3) return [x, z]; } return null; };
+    if (reg.id !== "base") road3D(grp, base, reg, st.road);
+    const counts = { forest: 10 + growth * 10, jungle: 12 + growth * 12, plateau: 4 + growth * 4, lake: 6 + growth * 6, hill: 6 + growth * 6, meadow: 2 + growth * 2, village: 3 + growth * 2, camp: 4 };
+    const trees = [], n = Math.min(counts[reg.kind] ?? 6, 110);
+    for (let i = 0; i < n; i++) {
+      const p = pick(reg.kind === "lake" ? 1.15 : 0.85, reg.kind === "lake" ? 0.74 : 0); if (!p) continue;
+      const pine = reg.kind === "plateau" || reg.kind === "hill" || (reg.kind === "forest" && rand() < 0.5);
+      trees.push({ x: p[0], z: p[1], s: 0.8 + rand() * 0.6, kind: pine ? "pine" : "round", c: reg.kind === "jungle" ? 0x3f6a2a : pine ? 0x34552a : 0x46703a });
+    }
+    treeMeshes(trees).forEach((m) => grp.add(m));
+    if (reg.kind === "village") {
+      for (let i = 0; i < Math.min(2 + growth * 2, 16); i++) {
+        const p = pick(0.65); if (!p) continue; const y = H(p[0], p[1]);
+        const house = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.9, 1.1), new THREE.MeshLambertMaterial({ color: 0xd8cfb8 })); house.position.set(p[0], y + 0.4, p[1]); grp.add(house);
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(1.05, 0.8, 4), new THREE.MeshLambertMaterial({ color: 0x8a4632 })); roof.rotation.y = Math.PI / 4; roof.position.set(p[0], y + 1.25, p[1]); grp.add(roof);
+        addLamp(grp, p[0] + 0.7, y + 0.5, p[1] + 0.6, 0.55, 0xffc477, false);
+      }
+    }
+    if (reg.kind === "camp") {
+      [[-2.2, 0.6, 0x8a4632], [2.4, 0.4, 0xcfc5ad]].forEach(([dx, dz, col]) => { const y = H(cx + dx, cz + dz); const tent = new THREE.Mesh(new THREE.ConeGeometry(1.4, 1.8, 4), new THREE.MeshLambertMaterial({ color: col })); tent.position.set(cx + dx, y + 0.8, cz + dz); tent.rotation.y = 0.5; grp.add(tent); });
+      addLamp(grp, cx, H(cx, cz) + 0.5, cz + 1.6, 1.6, 0xff9a50, false);
+      const fire = new THREE.PointLight(0xff9a50, 1.3, 16); fire.position.set(cx, H(cx, cz) + 1.2, cz + 1.6); grp.add(fire);
+    }
+    const lamps = Math.min(16, st.freq30 + (st.bonus30 || 0));
+    for (let i = 0; i < lamps; i++) { const p = pick(0.7); if (p) addLamp(grp, p[0], H(p[0], p[1]) + 1, p[1], 0.9); }
+    if (st.fog > 0) for (let i = 0; i < 9; i++) { const a = rand() * Math.PI * 2, d = Math.sqrt(rand()) * R0 * 0.8, x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d * 0.86; addCloud(grp, x, Math.max(0, H(x, z)) + 2.5 + rand() * 3, z, 10 + rand() * 8, st.fog * 0.95); }
+    if (pot >= 2 && reg.id !== "base") {
+      const ps = [], RR = R0 * (1 + 0.15 * pot);
+      for (let i = 0; i < pot * 8; i++) { const a = rand() * Math.PI * 2, d = RR * (0.8 + rand() * 0.3), x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d * 0.86; ps.push(x, Math.max(0, H(x, z)) + 1 + rand() * 2.5, z); }
+      const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(ps, 3));
+      const mat = new THREE.PointsMaterial({ map: S3.sparkle, color: 0xf2c35a, size: 1.1, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
+      grp.add(new THREE.Points(g, mat)); S3.sparks.push(mat);
+    }
+    if (selected === reg.id) {
+      const rp = [];
+      for (let i = 0; i < 120; i++) { const a = i / 120 * Math.PI * 2, x = cx + Math.cos(a) * (R + 1), z = cz + Math.sin(a) * (R + 1) * 0.86; rp.push(new THREE.Vector3(x, Math.max(0.1, H(x, z)) + 0.4, z)); }
+      grp.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(rp, true), 240, 0.17, 5, true), new THREE.MeshBasicMaterial({ color: 0xc8f08a, fog: false })));
+    }
+    tags.push({ reg, st, pot, scale, pos: new THREE.Vector3(cx, Math.max(0, H(cx, cz)) + (reg.kind === "plateau" ? 3 : 4), cz) });
+  });
+  // 늘 깔려 있는 물안개와 먼 산 구름
+  const mr = rng(99);
+  for (let i = 0; i < 12; i++) addCloud(grp, -70 + mr() * 140, 0.8 + mr() * 1.6, 34 + mr() * 16, 26 + mr() * 14, 0.2);
+  for (let i = 0; i < 10; i++) addCloud(grp, -80 + mr() * 160, 7 + mr() * 6, -46 + mr() * 8, 34 + mr() * 16, 0.28);
+  // 이름표
+  const box = $("sceneLabels"); box.replaceChildren(); S3.tags = [];
+  tags.forEach(({ reg, st, pot, scale, pos }) => {
+    const b = document.createElement("button"); b.type = "button";
+    b.className = "tag" + (selected === reg.id ? " sel" : "") + (st.fog ? " fogged" : "");
+    b.setAttribute("aria-label", `${reg.name}, 레벨 ${st.level}, 끝낸 일 ${st.xp}개, 미래 가능성 ${pot}단계`);
+    const nm = document.createElement("span"); nm.className = "tag-name"; nm.textContent = reg.name;
+    const sub = document.createElement("span"); sub.className = "tag-sub";
+    sub.textContent = reg.id === "base" ? baseSubText() : `Lv.${st.level} · 🌳${st.xp} · 💡${Math.min(16, st.freq30 + (st.bonus30 || 0))}`;
+    b.append(nm, sub);
+    const chips = document.createElement("span"); chips.className = "tag-chips";
+    const chip = (cls, text) => { const c = document.createElement("span"); c.className = "tag-chip " + cls; c.textContent = text; chips.appendChild(c); };
+    if (st.fog) chip("fog", "☁️ 안개");
+    if (st.bonus > 0) chip("gold", `+${st.bonus} ${(BONUS_STYLE[reg.id] || { icon: "✦" }).icon}`);
+    if (st.penalty > 0) chip("minus", `−${st.penalty}`);
+    if (reg.id !== "base" && pot >= 2 && scale < 0.9) chip("gold", "✦ 유망");
+    if (reg.id === "reading") { const nb = books.filter((x) => x.status !== "done").length; if (nb) chip("gold", `📖 ${nb}권 읽는 중`); }
+    if (reg.id === "english" && studies.length) chip("gold", `📝 ${studies.length}개 공부`);
+    if (chips.childNodes.length) b.appendChild(chips);
+    b.addEventListener("click", () => (reg.id === "reading" ? openReading() : reg.id === "english" ? openEnglish() : selectRegion(selected === reg.id ? null : reg.id)));
+    box.appendChild(b); S3.tags.push({ node: b, pos });
+  });
+  (mapConf.frontier || []).forEach((p) => {
+    const x = WX(p.x), z = WZ(p.y), s = document.createElement("span"); s.className = "tag frontier"; s.textContent = "◌ 미개척지";
+    box.appendChild(s); S3.tags.push({ node: s, pos: new THREE.Vector3(x, Math.max(0, S3.H(x, z)) + 9, z) });
+  });
+  render3D();
+  kick3D();
+}
+function drawMap() {
+  if (S3.ok) {
+    try { update3D(); }
+    catch (e) { console.error(e); S3.ok = false; $("scene").hidden = true; $("map").removeAttribute("hidden"); $("mapFrame").classList.remove("is-3d"); drawMapSvg(); return; }
+    $("totalXp").textContent = `지금까지 끝낸 일 🌳 ${tasks.filter((t) => t.done).length}`;
+  } else drawMapSvg();
+}
+
+/* ── 지역 패널 ── */
+function selectRegion(id) { selected = id; drawMap(); renderPanel(); renderHint(); }
+
+function renderHint() {
+  const reg = mapConf.regions.find((r) => r.id === selected);
+  $("addHint").innerHTML = "";
+  if (reg) {
+    const b = document.createElement("b"); b.textContent = reg.name;
+    $("addHint").append("지금 적는 일은 ", b, "에 바로 들어갑니다. 지도에서 같은 지역을 다시 누르면 선택이 풀립니다.");
+  } else {
+    $("addHint").textContent = "지역을 고르지 않고 적으면 「분류 대기」로 들어갑니다. 그 작은 표시를 눌러 지역을 고르거나, 지도에서 지역을 먼저 누르고 적으세요.";
+  }
+}
+
+function idleText(st) { return st.idle === null ? "아직 탐험 전" : st.idle === 0 ? "오늘 다녀옴" : `${st.idle}일 전 마지막 탐험`; }
+
+function renderPanel() {
+  const p = $("regionPanel");
+  p.replaceChildren();
+  const reg = mapConf.regions.find((r) => r.id === selected);
+  const head = document.createElement("div"); head.className = "panel-head";
+  const h2 = document.createElement("h2"); head.appendChild(h2); p.appendChild(head);
+  const body = document.createElement("div"); body.className = "region-body"; p.appendChild(body);
+
+  if (!reg) {
+    h2.textContent = "탐험 현황";
+    const ul = document.createElement("ul"); ul.className = "overview";
+    mapConf.regions.filter((r) => r.id !== "base").map((r) => ({ r, st: regionStats(r) }))
+      .sort((a, b) => (b.st.fog - a.st.fog) || ((b.st.idle ?? 999) - (a.st.idle ?? 999)))
+      .forEach(({ r, st }) => {
+        const li = document.createElement("li"); li.tabIndex = 0;
+        const nm = document.createElement("span"); nm.className = "o-name"; nm.textContent = r.name;
+        const lv = document.createElement("span"); lv.className = st.fog ? "chip fogged" : "chip"; lv.textContent = st.fog ? `Lv.${st.level} · 안개` : `Lv.${st.level}`;
+        const mt = document.createElement("span"); mt.className = "o-meta"; mt.textContent = `🌳 ${st.xp} · 남은 일 ${st.open.length} · ${ROAD_NAMES[st.road]} · ${idleText(st)}`;
+        if (potentialOf(r) >= 2 && sizeScale(r, st) < 0.9) { lv.className = "chip gold"; lv.textContent += " · ✦ 유망"; }
+        li.append(nm, lv, mt);
+        li.addEventListener("click", () => selectRegion(r.id));
+        li.addEventListener("keydown", (e) => { if (e.key === "Enter") selectRegion(r.id); });
+        ul.appendChild(li);
+      });
+    const note = document.createElement("p"); note.className = "region-blurb"; note.textContent = "안개 낀 지역이 위로 올라옵니다. 지도나 목록에서 지역을 누르면 스킬과 할 일이 열리고, 이름도 바꿀 수 있습니다.";
+    body.append(note, ul);
+    if (writable && db) body.appendChild(newRegionForm());
+    return;
+  }
+
+  const st = regionStats(reg);
+  h2.textContent = "지역 정보";
+  const close = document.createElement("button"); close.className = "btn-ghost"; close.type = "button"; close.textContent = "전체 보기";
+  close.addEventListener("click", () => selectRegion(null)); head.appendChild(close);
+  const t = document.createElement("h3"); t.className = "region-title"; t.textContent = reg.name;
+  const bl = document.createElement("p"); bl.className = "region-blurb"; bl.textContent = reg.blurb || "";
+  const xp = document.createElement("div"); xp.className = "xp";
+  const row = document.createElement("div"); row.className = "xp-row";
+  const a = document.createElement("span"); a.textContent = `Lv.${st.level} · 🌳 ${st.xp}`;
+  const b = document.createElement("span"); b.className = "mono"; b.textContent = st.next !== undefined ? `다음 레벨까지 ${st.next - st.xp}` : "최고 레벨";
+  row.append(a, b);
+  const bar = document.createElement("div"); bar.className = "xp-bar"; const fill = document.createElement("span");
+  fill.style.width = st.next !== undefined ? ((st.xp - st.cur) / (st.next - st.cur) * 100) + "%" : "100%"; bar.appendChild(fill);
+  const idle = document.createElement("div"); idle.className = "xp-row"; idle.textContent = idleText(st) + (st.fog ? " · 안개가 끼었습니다" : "");
+  const roadRow = document.createElement("div"); roadRow.className = "xp-row"; roadRow.textContent = `가는 길: ${ROAD_NAMES[st.road]} (최근 14일 ${st.freq}건)`;
+  xp.append(row, bar, idle, roadRow);
+  if (st.penalty > 0) { const pr = document.createElement("div"); pr.className = "xp-row"; pr.style.color = "var(--minus)"; pr.textContent = `배달 마이너스 −${st.penalty} (최근 30일 −${st.penalty30})`; xp.appendChild(pr); }
+  if (st.bonus > 0) { const br = document.createElement("div"); br.className = "xp-row"; br.textContent = `다른 지역에서 받은 보너스 ${(BONUS_STYLE[reg.id] || { icon: "✦" }).icon} ${st.bonus} (최근 30일 ${st.bonus30})`; xp.appendChild(br); }
+  const potWrap = document.createElement("div"); potWrap.className = "xp";
+  if (reg.id !== "base") {
+    const ph = document.createElement("p"); ph.className = "small-h"; ph.textContent = "미래 가능성 (별을 눌러 바꾸기)";
+    const pw = document.createElement("div"); pw.className = "skills";
+    const pv = potentialOf(reg);
+    [1, 2, 3].forEach((n) => {
+      const btn = document.createElement("button"); btn.type = "button"; btn.className = n <= pv ? "star on" : "star"; btn.textContent = "★";
+      btn.setAttribute("aria-label", `미래 가능성 ${n}단계`); btn.setAttribute("aria-pressed", String(n === pv));
+      btn.disabled = !writable || !db;
+      btn.addEventListener("click", () => setPotential(reg.id, n));
+      pw.appendChild(btn);
+    });
+    const pn = document.createElement("span"); pn.className = "region-blurb"; pn.style.alignSelf = "center";
+    pn.textContent = ["", "보통", "유망", "아주 유망"][pv] + (pv >= 2 && sizeScale(reg, st) < 0.9 ? " · 아직 덜 개척한 보물입니다" : "");
+    pw.appendChild(pn);
+    potWrap.append(ph, pw);
+  }
+
+  const sh = document.createElement("p"); sh.className = "small-h"; sh.textContent = "스킬";
+  const sk = document.createElement("div"); sk.className = "skills";
+  (reg.skills || []).forEach((s) => {
+    const n = st.mine.filter((x) => x.done && x.skill === s).length;
+    const c = document.createElement("span"); c.className = n ? "chip" : "chip plain"; c.textContent = n ? `${s} · ${n}` : s; sk.appendChild(c);
+  });
+  const th = document.createElement("p"); th.className = "small-h"; th.textContent = `이 지역의 남은 일 ${st.open.length}`;
+  const ul = document.createElement("ul"); ul.className = "list"; ul.style.padding = "0";
+  if (st.open.length) st.open.forEach((x) => ul.appendChild(taskItem(x))); else { const li = document.createElement("li"); li.className = "empty"; li.style.padding = "4px 0"; li.textContent = "남은 일이 없습니다. 위 칸에 적으면 이 지역으로 들어갑니다."; ul.appendChild(li); }
+  const fr = document.createElement("p"); fr.className = "region-blurb";
+  const fsp = FAUNA[reg.kind];
+  if (fsp) fr.textContent = reg.id === "base"
+    ? `🐾 베이스캠프 지킴이: ${fsp.icon} ${fsp.name} ${faunaCount(reg, st)}마리 · 가끔 다른 지역으로 마실을 나갑니다.`
+    : `🐾 이 지역 친구: ${fsp.icon} ${fsp.name} ${faunaCount(reg, st)}마리 · 레벨이 오르면 친구가 늘고, 가끔 베이스캠프에 놀러 갑니다.`;
+  const daily = document.createElement("div"); daily.className = "xp";
+  if (reg.id === "base") {
+    const m = doneByDay();
+    const dh = document.createElement("p"); dh.className = "small-h"; dh.textContent = "일자별 끝낸 일 (모든 지역 합계, 최근 7일)";
+    daily.appendChild(dh);
+    const max = Math.max(1, ...Array.from({ length: 7 }, (_, i) => m[localDate(new Date(Date.now() - i * 86400000))] || 0));
+    for (let i = 0; i < 7; i++) {
+      const dt = new Date(Date.now() - i * 86400000), key = localDate(dt), n = m[key] || 0;
+      const r = document.createElement("div"); r.className = "xp-row";
+      const l = document.createElement("span"); l.className = "mono"; l.textContent = `${key.slice(5).replace("-", "/")} (${WEEKDAYS[dt.getDay()]})` + (i === 0 ? " 오늘" : "");
+      const v = document.createElement("span"); v.className = "mono"; v.textContent = `${n}건`;
+      r.append(l, v);
+      const bar = document.createElement("div"); bar.className = "xp-bar"; const f = document.createElement("span"); f.style.width = (n / max * 100) + "%"; bar.appendChild(f);
+      daily.append(r, bar);
+    }
+  }
+  const bookWrap = document.createElement("div"); bookWrap.className = "xp";
+  if (reg.id === "reading") {
+    const ob = document.createElement("button"); ob.type = "button"; ob.className = "btn"; ob.style.padding = "10px 16px";
+    ob.textContent = `📚 독서 언덕 페이지 열기 (읽는 중 ${books.filter((x) => x.status !== "done").length}권)`;
+    ob.addEventListener("click", openReading); bookWrap.appendChild(ob);
+  }
+  if (reg.id === "english") {
+    const ob = document.createElement("button"); ob.type = "button"; ob.className = "btn"; ob.style.padding = "10px 16px";
+    ob.textContent = `🌲 영어 공부 기록 열기 (문장·단어 ${studies.length}개)`;
+    ob.addEventListener("click", openEnglish); bookWrap.appendChild(ob);
+  }
+  body.append(t, bl, fr, xp, daily, bookWrap, potWrap, sh, sk, th, ul);
+  if (writable && db) body.appendChild(regionEditor(reg));
+}
+
+/* ── 지역 직접 편집: 이름·설명·스킬 바꾸기, 미개척지에 새 지역 열기 (db meta/regions에 저장) ── */
+const KIND_NAMES = { forest: "숲 🦊", plateau: "고원 🐐", jungle: "정글 🐒", lake: "호수 🦆", meadow: "들판 🐇", village: "마을 🐕", hill: "언덕 🦉" };
+function textInput(id, value, label, max) {
+  const i = document.createElement("input"); i.type = "text"; i.id = id; i.value = value; i.maxLength = max; i.placeholder = label; i.setAttribute("aria-label", label);
+  return i;
+}
+function saveRegions(regions, frontier) {
+  mapConf = { regions, frontier };
+  renderAll();
+  write(() => db.doc("meta/regions").set({ regions, frontier }), "지역을 저장하지 못했습니다.");
+}
+function regionEditor(reg) {
+  const wrap = document.createElement("div"); wrap.className = "xp";
+  const eb = document.createElement("button"); eb.type = "button"; eb.className = "btn-ghost"; eb.textContent = "✏️ 이 지역 이름·설명·스킬 바꾸기";
+  wrap.appendChild(eb);
+  eb.addEventListener("click", () => {
+    const f = document.createElement("form"); f.className = "book-edit"; f.autocomplete = "off";
+    const ni = textInput(`re-n-${reg.id}`, reg.name, "지역 이름", 30);
+    const bi = textInput(`re-b-${reg.id}`, reg.blurb || "", "한 줄 설명", 80);
+    const si = textInput(`re-s-${reg.id}`, (reg.skills || []).join(", "), "스킬 (쉼표로 구분)", 160);
+    const ok = document.createElement("button"); ok.type = "submit"; ok.className = "btn"; ok.textContent = "저장";
+    const no = document.createElement("button"); no.type = "button"; no.className = "btn-ghost"; no.textContent = "취소";
+    f.append(ni, bi, si, ok, no); eb.replaceWith(f); ni.focus();
+    no.addEventListener("click", () => renderPanel());
+    f.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = ni.value.trim(); if (!name) { ni.focus(); return; }
+      const skills = si.value.split(/\s*[,，·]\s*/).map((s) => s.trim()).filter(Boolean).slice(0, 8);
+      saveRegions(mapConf.regions.map((r) => (r.id === reg.id ? { ...r, name, blurb: bi.value.trim(), skills } : r)), mapConf.frontier || []);
+    });
+  });
+  return wrap;
+}
+function newRegionForm() {
+  const wrap = document.createElement("div"); wrap.className = "xp";
+  const h = document.createElement("p"); h.className = "small-h"; h.textContent = `◌ 미개척지에 새 지역 열기 (남은 자리 ${(mapConf.frontier || []).length}곳)`;
+  wrap.appendChild(h);
+  if (!(mapConf.frontier || []).length) { const p = document.createElement("p"); p.className = "region-blurb"; p.textContent = "미개척지를 모두 열었습니다."; wrap.appendChild(p); return wrap; }
+  const f = document.createElement("form"); f.className = "book-edit"; f.autocomplete = "off";
+  const ni = textInput("nr-name", "", "새 지역 이름 (예: 운동의 산)", 30);
+  const ks = document.createElement("select"); ks.id = "nr-kind"; ks.className = "picker"; ks.setAttribute("aria-label", "땅 모양");
+  Object.entries(KIND_NAMES).forEach(([k, v]) => { const o = document.createElement("option"); o.value = k; o.textContent = v; ks.appendChild(o); });
+  const ok = document.createElement("button"); ok.type = "submit"; ok.className = "btn"; ok.textContent = "열기";
+  f.append(ni, ks, ok); wrap.appendChild(f);
+  f.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = ni.value.trim(); if (!name) { ni.focus(); return; }
+    const [spot, ...rest] = mapConf.frontier;
+    const id = "r" + Date.now().toString(36);
+    saveRegions([...mapConf.regions, { id, name, kind: ks.value, x: spot.x, y: spot.y, r: 88, depts: [id], skills: [], blurb: "" }], rest);
+  });
+  return wrap;
+}
+
+/* ── 독서 언덕 책장: db books 문서 {title, author, status: "reading"|"done", startedAt, finishedAt, createdAt} ── */
+/* 독서 타임라인: 책마다 시작일~끝날(읽는 중이면 오늘)까지 막대, 금색 세로선 = 오늘 */
+function bookTimeline(list) {
+  const box = document.createElement("div"); box.className = "tl";
+  const DAY = 86400000, day = (s) => new Date(s + "T00:00:00").getTime();
+  const items = list.filter((b) => b.startedAt).sort((a, b) => a.startedAt.localeCompare(b.startedAt));
+  const now = day(todayStr);
+  let lo = Math.min(...items.map((b) => day(b.startedAt))), hi = Math.max(now, ...items.map((b) => (b.finishedAt ? day(b.finishedAt) : 0)));
+  if (hi - lo < 13 * DAY) lo = hi - 13 * DAY;
+  lo -= DAY; hi += DAY;
+  const pct = (t) => ((t - lo) / (hi - lo)) * 100;
+  const axisRow = document.createElement("div"); axisRow.className = "tl-row";
+  const axis = document.createElement("div"); axis.className = "tl-axis";
+  const span = (hi - lo) / DAY, d = new Date(lo);
+  d.setHours(0, 0, 0, 0);
+  const ticks = [];
+  if (span <= 45) { d.setDate(d.getDate() + ((8 - d.getDay()) % 7)); for (; d.getTime() <= hi; d.setDate(d.getDate() + 7)) ticks.push(new Date(d)); }
+  else { d.setDate(1); d.setMonth(d.getMonth() + 1); const step = span > 400 ? 3 : 1; for (; d.getTime() <= hi; d.setMonth(d.getMonth() + step)) ticks.push(new Date(d)); }
+  ticks.forEach((t) => { const p = pct(t.getTime()); if (p < 4 || p > 96) return; const s = document.createElement("span"); s.style.left = p + "%"; s.textContent = span <= 45 ? `${t.getMonth() + 1}/${t.getDate()}` : `${t.getMonth() + 1}월`; axis.appendChild(s); });
+  axisRow.append(document.createElement("span"), axis); box.appendChild(axisRow);
+  items.forEach((b) => {
+    const r = document.createElement("div"); r.className = "tl-row";
+    const nm = document.createElement("span"); nm.className = "tl-name"; nm.textContent = `『${b.title}』`; nm.title = b.title;
+    const tr = document.createElement("div"); tr.className = "tl-track";
+    const s = day(b.startedAt), e = b.finishedAt ? day(b.finishedAt) : now, n = Math.round((e - s) / DAY) + 1;
+    const bar = document.createElement("div"); bar.className = "tl-bar" + (b.finishedAt ? "" : " open");
+    bar.style.left = pct(s) + "%"; bar.style.width = Math.max(1.5, pct(e + DAY) - pct(s)) + "%";
+    bar.textContent = b.finishedAt ? `${n}일` : `${n}일째`;
+    bar.title = `${b.title}: ${b.startedAt} ~ ${b.finishedAt || "읽는 중"} (${n}일)`;
+    const td = document.createElement("div"); td.className = "tl-today"; td.style.left = pct(now + DAY / 2) + "%";
+    tr.append(bar, td); r.append(nm, tr); box.appendChild(r);
+  });
+  const key = document.createElement("p"); key.className = "tl-key"; key.textContent = "막대 = 읽은 기간 · 줄무늬 = 아직 읽는 중 · 금색 선 = 오늘";
+  box.appendChild(key);
+  return box;
+}
+/* ── 독서 언덕 별도 페이지(#reading) ── */
+function renderReadingPage() {
+  if ($("readingPage").hidden) return;
+  const reg = mapConf.regions.find((r) => r.id === "reading");
+  $("rpBlurb").textContent = reg ? reg.blurb || "" : "";
+  const DAY = 86400000, day = (s) => new Date(s + "T00:00:00").getTime(), yr = todayStr.slice(0, 4);
+  const reading = books.filter((b) => b.status !== "done"), done = books.filter((b) => b.status === "done");
+  const days = books.filter((b) => b.startedAt).reduce((a, b) => a + Math.round(((b.finishedAt ? day(b.finishedAt) : day(todayStr)) - day(b.startedAt)) / DAY) + 1, 0);
+  const st = $("rpStats"); st.replaceChildren();
+  [["읽는 중", reading.length + "권"], ["다 읽은 책", done.length + "권"], [`${yr}년에 다 읽음`, done.filter((b) => (b.finishedAt || "").startsWith(yr)).length + "권"], ["책과 함께한 날 합계", days + "일"]].forEach(([k, v]) => {
+    const d = document.createElement("div"); d.className = "rp-stat"; const b = document.createElement("b"); b.textContent = v; const s = document.createElement("span"); s.textContent = k; d.append(b, s); st.appendChild(d);
+  });
+  const tl = $("rpTimeline"); tl.replaceChildren();
+  if (books.some((b) => b.startedAt)) tl.appendChild(bookTimeline(books)); else tl.textContent = "책을 추가하면 읽은 기간이 막대로 그려집니다.";
+  const bk = $("rpBooks"); bk.replaceChildren(); renderBooks(bk, false);
+  const open = reg ? regionStats(reg).open : [], ul = $("rpTasks"); ul.replaceChildren();
+  $("rpTaskCount").textContent = open.length + "건";
+  if (open.length) open.forEach((t) => ul.appendChild(taskItem(t)));
+  else { const li = document.createElement("li"); li.className = "empty"; li.textContent = "남은 일이 없습니다. 지도 화면에서 독서 언덕을 고르고 적으면 여기로 들어옵니다."; ul.appendChild(li); }
+}
+/* ── 영어의 숲 별도 페이지(#english): db english 문서 {date, type: "sentence"|"word", en, ko, createdAt} ── */
+function studyStreak(dates) {
+  const set = new Set(dates); let d = new Date(todayStr + "T00:00:00"), n = 0;
+  if (!set.has(todayStr)) d.setDate(d.getDate() - 1);
+  while (set.has(localDate(d))) { n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
+function renderEnglishPage() {
+  if ($("englishPage").hidden) return;
+  const reg = mapConf.regions.find((r) => r.id === "english");
+  $("epBlurb").textContent = reg ? reg.blurb || "" : "";
+  const days = [...new Set(studies.map((s) => s.date).filter(Boolean))].sort().reverse();
+  const nS = studies.filter((s) => s.type !== "word").length, nW = studies.filter((s) => s.type === "word").length;
+  const st = $("epStats"); st.replaceChildren();
+  [["공부한 날", days.length + "일"], ["익힌 문장", nS + "개"], ["익힌 단어", nW + "개"], ["연속 공부", studyStreak(days) + "일째"]].forEach(([k, v]) => {
+    const d = document.createElement("div"); d.className = "rp-stat"; const b = document.createElement("b"); b.textContent = v; const s = document.createElement("span"); s.textContent = k; d.append(b, s); st.appendChild(d);
+  });
+  const q = $("epSearch").value.trim().toLowerCase();
+  const hit = (s) => !q || (s.en || "").toLowerCase().includes(q) || (s.ko || "").toLowerCase().includes(q);
+  const list = studies.filter(hit);
+  $("epCount").textContent = q ? `${list.length} / ${studies.length}개` : `${studies.length}개`;
+  const log = $("epLog"); log.replaceChildren();
+  log.classList.toggle("hide-ko", $("epHide").checked);
+  if (!list.length) { const p = document.createElement("p"); p.className = "region-blurb"; p.textContent = studies.length ? "찾는 문장이 없습니다." : "아직 기록이 없습니다. 위 칸에 오늘 공부한 문장을 적어 보세요."; log.appendChild(p); }
+  const byDay = new Map();
+  list.forEach((s) => { const k = s.date || "날짜 없음"; if (!byDay.has(k)) byDay.set(k, []); byDay.get(k).push(s); });
+  [...byDay.keys()].sort().reverse().forEach((k) => {
+    const items = byDay.get(k).sort((a, b) => (a.type === "word") - (b.type === "word") || (a.createdAt || "").localeCompare(b.createdAt || ""));
+    const sec = document.createElement("section"); sec.className = "ep-day";
+    const h = document.createElement("h3"); const dt = new Date(k + "T00:00:00");
+    h.textContent = isNaN(dt) ? k : `${k.slice(5).replace("-", "/")} (${WEEKDAYS[dt.getDay()]})` + (k === todayStr ? " 오늘" : "");
+    const sm = document.createElement("span"); const a = items.filter((x) => x.type !== "word").length, w = items.length - a;
+    sm.textContent = [a ? `문장 ${a}` : "", w ? `단어 ${w}` : ""].filter(Boolean).join(" · "); h.appendChild(sm);
+    const ul = document.createElement("ul"); ul.className = "ep-list";
+    items.forEach((s) => ul.appendChild(studyItem(s)));
+    sec.append(h, ul); log.appendChild(sec);
+  });
+  const open = reg ? regionStats(reg).open : [], tl = $("epTasks"); tl.replaceChildren();
+  $("epTaskCount").textContent = open.length + "건";
+  if (open.length) open.forEach((t) => tl.appendChild(taskItem(t)));
+  else { const li = document.createElement("li"); li.className = "empty"; li.textContent = "남은 일이 없습니다."; tl.appendChild(li); }
+}
+function studyItem(s) {
+  const li = document.createElement("li"); li.className = "ep-item";
+  const c = document.createElement("span"); c.className = s.type === "word" ? "chip plain" : "chip"; c.textContent = s.type === "word" ? "단어" : "문장";
+  const en = document.createElement("span"); en.className = "ep-en"; en.textContent = s.en || "";
+  const ko = document.createElement("span"); ko.className = "ep-ko"; ko.textContent = s.ko || "—";
+  ko.addEventListener("click", () => ko.classList.toggle("show"));
+  const acts = document.createElement("span"); acts.className = "ep-acts";
+  li.append(c, en, ko, acts);
+  if (!writable || !db) return li;
+  const ed = document.createElement("button"); ed.type = "button"; ed.className = "del"; ed.textContent = "✏️"; ed.style.fontSize = "14px"; ed.setAttribute("aria-label", "고치기");
+  const del = document.createElement("button"); del.type = "button"; del.className = "del"; del.textContent = "×"; del.setAttribute("aria-label", "지우기");
+  del.addEventListener("click", () => {
+    if (del.dataset.armed !== "1") { del.dataset.armed = "1"; del.textContent = "삭제?"; del.style.fontSize = "12px"; setTimeout(() => { del.dataset.armed = ""; del.textContent = "×"; del.style.fontSize = ""; }, 3000); return; }
+    write(() => db.doc("english/" + s.id).delete(), "지우지 못했습니다.");
+  });
+  ed.addEventListener("click", () => {
+    const f = document.createElement("form"); f.autocomplete = "off";
+    const ei = document.createElement("input"); ei.type = "text"; ei.id = `ee-${s.id}`; ei.value = s.en || ""; ei.maxLength = 300; ei.setAttribute("aria-label", "영어");
+    const ki = document.createElement("input"); ki.type = "text"; ki.id = `ek-${s.id}`; ki.value = s.ko || ""; ki.maxLength = 300; ki.setAttribute("aria-label", "한글 해석");
+    const di = document.createElement("input"); di.type = "date"; di.id = `ed-${s.id}`; di.value = s.date || todayStr; di.setAttribute("aria-label", "날짜"); di.style.flex = "0 0 150px";
+    const ok = document.createElement("button"); ok.type = "submit"; ok.className = "btn"; ok.textContent = "저장";
+    const no = document.createElement("button"); no.type = "button"; no.className = "btn-ghost"; no.textContent = "취소";
+    f.append(ei, ki, di, ok, no);
+    en.remove(); ko.remove(); acts.remove(); li.appendChild(f); ei.focus();
+    no.addEventListener("click", () => renderEnglishPage());
+    f.addEventListener("keydown", (e) => { if (e.key === "Escape") renderEnglishPage(); });
+    f.addEventListener("submit", (e) => {
+      e.preventDefault(); const v = ei.value.trim(); if (!v) { ei.focus(); return; }
+      write(() => db.doc("english/" + s.id).update({ en: v, ko: ki.value.trim() || null, date: di.value || s.date }), "고친 내용을 저장하지 못했습니다.");
+    });
+  });
+  acts.append(ed, del);
+  return li;
+}
+function showView() {
+  const h = location.hash, rp = h === "#reading", ep = h === "#english";
+  $("readingPage").hidden = !rp; $("englishPage").hidden = !ep; $("mainPage").hidden = rp || ep;
+  if (rp) { renderReadingPage(); window.scrollTo(0, 0); $("rpBack").focus({ preventScroll: true }); }
+  else if (ep) { renderEnglishPage(); window.scrollTo(0, 0); $("epBack").focus({ preventScroll: true }); }
+  else kick3D();
+}
+function openEnglish() { if (location.hash !== "#english") location.hash = "english"; showView(); }
+function openReading() { if (location.hash !== "#reading") location.hash = "reading"; showView(); }
+window.addEventListener("hashchange", showView);
+function renderBooks(wrap, withTimeline = true) {
+  const reading = books.filter((b) => b.status !== "done").sort((a, b) => (a.startedAt || "").localeCompare(b.startedAt || ""));
+  const done = books.filter((b) => b.status === "done").sort((a, b) => (b.finishedAt || "").localeCompare(a.finishedAt || ""));
+  const h = document.createElement("p"); h.className = "small-h"; h.textContent = `📚 지금 읽는 책 ${reading.length}권`;
+  const ul = document.createElement("ul"); ul.className = "books";
+  const row = (b, isDone) => {
+    const li = document.createElement("li"); li.className = "book";
+    const tt = document.createElement("span"); tt.className = "book-t"; tt.textContent = `『${b.title}』`;
+    const au = document.createElement("span"); au.className = "book-a"; au.textContent = b.author || "";
+    li.append(tt, au);
+    if (writable && db) {
+      const ed = document.createElement("button"); ed.type = "button"; ed.className = "btn-ghost"; ed.textContent = "✏️ 수정"; ed.setAttribute("aria-label", `『${b.title}』 제목·저자 수정`);
+      ed.addEventListener("click", () => {
+        const f = document.createElement("form"); f.className = "book-edit"; f.autocomplete = "off";
+        const ti = document.createElement("input"); ti.type = "text"; ti.id = `be-t-${b.id}`; ti.value = b.title; ti.maxLength = 120; ti.placeholder = "책 제목"; ti.setAttribute("aria-label", "책 제목");
+        const ai = document.createElement("input"); ai.type = "text"; ai.id = `be-a-${b.id}`; ai.value = b.author || ""; ai.maxLength = 80; ai.placeholder = "지은이"; ai.setAttribute("aria-label", "지은이");
+        const ok = document.createElement("button"); ok.type = "submit"; ok.className = "btn"; ok.textContent = "저장";
+        const no = document.createElement("button"); no.type = "button"; no.className = "btn-ghost"; no.textContent = "취소";
+        f.append(ti, ai, ok, no);
+        tt.replaceWith(f); au.remove(); ed.remove();
+        ti.focus(); ti.select();
+        no.addEventListener("click", () => renderAll());
+        f.addEventListener("keydown", (e) => { if (e.key === "Escape") renderAll(); });
+        f.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const title = ti.value.trim().replace(/[『』「」]/g, "");
+          if (!title) { setStatus("책 제목을 적어 주세요.", true); ti.focus(); return; }
+          write(() => db.doc("books/" + b.id).update({ title, author: ai.value.trim() || null }), "책 정보를 저장하지 못했습니다.");
+        });
+      });
+      li.appendChild(ed);
+    }
+    const dates = document.createElement("span"); dates.className = "book-d";
+    const mk = (field, val, label) => {
+      const i = document.createElement("input"); i.type = "date"; i.value = val || ""; i.id = `bd-${field}-${b.id}`; i.setAttribute("aria-label", label); i.disabled = !writable || !db;
+      i.addEventListener("change", () => {
+        const v = i.value || null;
+        if (field === "startedAt" && !v) { i.value = b.startedAt || ""; return; }
+        const s = field === "startedAt" ? v : b.startedAt, e = field === "finishedAt" ? v : b.finishedAt;
+        if (s && e && e < s) { setStatus("다 읽은 날이 시작한 날보다 앞설 수는 없습니다.", true); i.value = val || ""; return; }
+        write(() => db.doc("books/" + b.id).update(field === "finishedAt" ? { finishedAt: v, status: v ? "done" : "reading" } : { startedAt: v }), "날짜를 저장하지 못했습니다.");
+      });
+      return i;
+    };
+    dates.append("📖 시작", mk("startedAt", b.startedAt, "읽기 시작한 날"), "🏁 끝", mk("finishedAt", b.finishedAt, "다 읽은 날"));
+    li.appendChild(dates);
+    if (writable && db) {
+      const fin = document.createElement("button"); fin.type = "button"; fin.className = "btn-ghost"; fin.textContent = isDone ? "다시 읽기" : "다 읽음";
+      fin.addEventListener("click", () => write(() => db.doc("books/" + b.id).update(isDone ? { status: "reading", finishedAt: null } : { status: "done", finishedAt: todayStr }), "책 상태를 저장하지 못했습니다."));
+      const del = document.createElement("button"); del.type = "button"; del.className = "del"; del.style.gridRow = "auto"; del.textContent = "×"; del.setAttribute("aria-label", "책 지우기");
+      del.addEventListener("click", () => {
+        if (del.dataset.armed !== "1") { del.dataset.armed = "1"; del.textContent = "삭제?"; del.style.fontSize = "12px"; setTimeout(() => { del.dataset.armed = ""; del.textContent = "×"; del.style.fontSize = ""; }, 3000); return; }
+        write(() => db.doc("books/" + b.id).delete(), "책을 지우지 못했습니다.");
+      });
+      li.append(fin, del);
+    }
+    return li;
+  };
+  if (reading.length) reading.forEach((b) => ul.appendChild(row(b, false)));
+  else { const li = document.createElement("li"); li.className = "book book-a"; li.textContent = "지금 읽는 책이 없습니다. 아래 칸에 적어 보세요."; ul.appendChild(li); }
+  wrap.append(h);
+  if (withTimeline && books.some((b) => b.startedAt)) wrap.appendChild(bookTimeline(books));
+  wrap.append(ul);
+  if (writable) {
+    const f = document.createElement("form"); f.className = "book-add"; f.autocomplete = "off";
+    const inp = document.createElement("input"); inp.type = "text"; inp.id = "newBook"; inp.maxLength = 120; inp.placeholder = "책 제목 / 지은이 → Enter (예: 안목 / 김도균)"; inp.setAttribute("aria-label", "읽기 시작한 책");
+    const sb = document.createElement("button"); sb.className = "btn"; sb.type = "submit"; sb.textContent = "추가";
+    f.append(inp, sb);
+    f.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const v = inp.value.trim(); if (!v) return;
+      if (!db) { setStatus("아직 연결되지 않았습니다. 잠시 뒤 다시 추가해 주세요.", true); return; }
+      const [title, ...rest] = v.split(/\s*[\/,·]\s*/);
+      inp.value = "";
+      write(() => db.collection("books").add({ title: title.replace(/[『』「」]/g, ""), author: rest.join(", ") || null, status: "reading", startedAt: todayStr, finishedAt: null, createdAt: new Date().toISOString() }), "책을 저장하지 못했습니다.");
+    });
+    wrap.appendChild(f);
+  }
+  if (done.length) {
+    const d = document.createElement("details"); d.className = "read-done";
+    const s = document.createElement("summary"); s.textContent = `다 읽은 책 ${done.length}권`;
+    const dl = document.createElement("ul"); dl.className = "books"; done.forEach((b) => dl.appendChild(row(b, true)));
+    d.append(s, dl); wrap.appendChild(d);
+  }
+}
+
+/* ── 할 일 목록 ── */
+function taskItem(t) {
+  const li = document.createElement("li");
+  li.className = "task" + (t.done ? " done" : "");
+  const cb = document.createElement("input");
+  cb.type = "checkbox"; cb.className = "check"; cb.checked = !!t.done; cb.id = "cb-" + t.id + "-" + Math.random().toString(36).slice(2, 6);
+  cb.setAttribute("aria-label", "완료 표시"); cb.disabled = !writable;
+  cb.addEventListener("change", () => toggle(t, cb.checked));
+  const text = document.createElement("div");
+  text.className = "task-text"; text.textContent = t.text; text.tabIndex = writable ? 0 : -1; text.title = "눌러서 고치기";
+  if (writable) {
+    text.addEventListener("click", () => startEdit(text, t));
+    text.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); startEdit(text, t); } });
+  }
+  const del = document.createElement("button");
+  del.className = "del"; del.type = "button"; del.textContent = "×"; del.setAttribute("aria-label", "삭제"); del.hidden = !writable;
+  del.addEventListener("click", () => remove(t, del));
+  const meta = document.createElement("div"); meta.className = "meta";
+  const reg = regionOf(t);
+  const chip = document.createElement(writable ? "button" : "span");
+  if (writable) { chip.type = "button"; chip.addEventListener("click", () => openRegionPicker(chip, t)); }
+  const pz = penaltiesOf(t).filter((x) => BONUS_STYLE[x]);
+  if (reg) { chip.className = "chip"; chip.textContent = reg.name + (t.skill ? " · " + t.skill : ""); chip.title = t.dept; }
+  else if (pz.length) { chip.className = "chip plain"; chip.textContent = "📝 기록"; }
+  else { chip.className = "chip pending"; chip.textContent = "분류 대기 ▾"; }
+  if (writable) chip.title = "눌러서 지역 고르기";
+  meta.appendChild(chip);
+  if (pz.length) { const c = document.createElement("span"); c.className = "chip minus"; c.textContent = pz.map((x) => "−" + BONUS_STYLE[x].icon).join(" "); c.title = "재무·건강에 마이너스로 쌓입니다"; meta.appendChild(c); }
+  const bz = bonusesOf(t).filter((x) => BONUS_STYLE[x]);
+  if (bz.length) { const c = document.createElement("span"); c.className = "chip gold"; c.textContent = bz.map((x) => "+" + BONUS_STYLE[x].icon).join(" "); c.title = "끝내면 다른 지역에도 보너스가 쌓입니다"; meta.appendChild(c); }
+  if (t.due) { const c = document.createElement("span"); c.className = "chip plain mono"; c.textContent = "📅 " + t.due.slice(5).replace("-", "/"); meta.appendChild(c); }
+  if (!t.done && t.date && t.date < todayStr) { const c = document.createElement("span"); c.className = "chip age"; c.textContent = (daysBetween(t.date, todayStr) + 1) + "일째"; meta.appendChild(c); }
+  li.append(cb, text, del, meta);
+  return li;
+}
+
+function openRegionPicker(chip, t) {
+  const sel = document.createElement("select");
+  sel.id = "pick-" + t.id; sel.className = "picker"; sel.setAttribute("aria-label", "지역 고르기");
+  const add = (value, label) => { const o = document.createElement("option"); o.value = value; o.textContent = label; sel.appendChild(o); };
+  add("__keep", "지역 고르기…");
+  mapConf.regions.forEach((r) => add(r.id, r.name));
+  add("__none", "분류 대기로 돌리기");
+  const cur = regionOf(t); if (cur) sel.value = cur.id;
+  chip.replaceWith(sel); sel.focus();
+  let done = false;
+  sel.addEventListener("change", () => {
+    if (done || sel.value === "__keep") return; done = true;
+    const r = mapConf.regions.find((x) => x.id === sel.value);
+    const dept = r ? r.depts[0] : null;
+    if (dept === (t.dept ?? null)) { renderAll(); return; }
+    write(() => db.doc("tasks/" + t.id).update({ dept, skill: null }), "지역을 저장하지 못했습니다.");
+  });
+  sel.addEventListener("blur", () => { if (!done) renderAll(); });
+  sel.addEventListener("keydown", (e) => { if (e.key === "Escape") { done = true; renderAll(); } });
+}
+
+function renderLists() {
+  const isToday = (t) => t.doneAt && localDate(new Date(t.doneAt)) === todayStr;
+  const key = (t) => leadDate(t.text || "") || t.due || "9999-99-99";
+  const open = tasks.filter((t) => !t.done).sort((a, b) => key(a).localeCompare(key(b)) || (a.createdAt || "").localeCompare(b.createdAt || ""));
+  const doneToday = tasks.filter((t) => t.done && isToday(t));
+  const older = tasks.filter((t) => t.done && !isToday(t)).sort((a, b) => (b.doneAt || "").localeCompare(a.doneAt || ""));
+  const fill = (ul, list, emptyText) => {
+    ul.replaceChildren();
+    if (!list.length) { const li = document.createElement("li"); li.className = "empty"; li.textContent = emptyText; ul.appendChild(li); return; }
+    list.forEach((t) => ul.appendChild(taskItem(t)));
+  };
+  fill($("openList"), open, "오늘의 탐험이 비어 있습니다. 위 칸에 할 일을 적어 보세요.");
+  fill($("doneList"), doneToday, "아직 끝낸 일이 없습니다. 하나 끝내면 지도에 나무가 자랍니다.");
+  $("openCount").textContent = open.length + "건";
+  $("doneCount").textContent = doneToday.length + "건";
+  $("olderWrap").hidden = older.length === 0;
+  if (older.length) { $("olderSummary").textContent = `지난 완료 ${older.length}건 보기`; $("olderList").replaceChildren(...older.slice(0, 50).map(taskItem)); }
+}
+
+/* 탐험 일지(실시간): 할 일 체크가 바뀔 때마다 오늘 다녀온 지역·안개 지역·다가오는 일을 다시 적습니다. */
+function renderLog() {
+  const isToday = (t) => t.doneAt && localDate(new Date(t.doneAt)) === todayStr;
+  const lines = [];
+  const doneToday = tasks.filter((t) => t.done && isToday(t) && !penaltiesOf(t).length);
+  const byReg = new Map();
+  doneToday.forEach((t) => { const r = regionOf(t); const k = r ? r.name : "분류 대기"; byReg.set(k, (byReg.get(k) || 0) + 1); });
+  if (doneToday.length) lines.push(`🌳 오늘 끝낸 일 ${doneToday.length}건 — ` + [...byReg].map(([k, n]) => `${k} ${n}`).join(" · "));
+  else lines.push("🌳 오늘은 아직 끝낸 일이 없습니다. 하나만 체크해도 길이 열립니다.");
+  const pen = tasks.filter((t) => isToday(t) && penaltiesOf(t).length).length;
+  if (pen) lines.push(`🛵 오늘 배달 기록 ${pen}건 (재무·건강 −${pen})`);
+  const regs = mapConf.regions.filter((r) => r.id !== "base").map((r) => ({ r, st: regionStats(r) }));
+  const visited = regs.filter((x) => x.st.idle === 0).map((x) => x.r.name);
+  const foggy = regs.filter((x) => x.st.fog > 0).sort((a, b) => (b.st.idle ?? 999) - (a.st.idle ?? 999));
+  if (visited.length) lines.push(`🛤️ 오늘 길을 낸 곳: ${visited.join(", ")}`);
+  if (foggy.length) lines.push(`🌫️ 안개 낀 곳 ${foggy.length}곳: ${foggy.map((x) => x.r.name).join(", ")}`);
+  else lines.push("☀️ 안개 낀 지역이 없습니다. 지도가 맑습니다.");
+  const open = tasks.filter((t) => !t.done);
+  const dueOf = (t) => leadDate(t.text || "") || t.due || null;
+  const late = open.filter((t) => dueOf(t) && dueOf(t) < todayStr);
+  const todayDue = open.filter((t) => dueOf(t) === todayStr);
+  const next = open.filter((t) => dueOf(t) && dueOf(t) > todayStr).sort((a, b) => dueOf(a).localeCompare(dueOf(b)))[0];
+  if (late.length) lines.push(`⏰ 날짜가 지난 일 ${late.length}건: ${late.slice(0, 3).map((t) => t.text).join(" / ")}`);
+  if (todayDue.length) lines.push(`📌 오늘 할 일 ${todayDue.length}건 남음: ${todayDue.slice(0, 3).map((t) => t.text).join(" / ")}`);
+  if (next) lines.push(`➡️ 다음 일정: ${next.text}`);
+  if (foggy.length) lines.push(`💡 다음 한 걸음: ${foggy[0].r.name}에 작은 일 하나를 적어 안개를 걷어 보세요.`);
+  $("logAuto").textContent = lines.join("\n");
+}
+
+function renderAllNow() { drawMap(); renderLists(); renderPanel(); renderLog(); renderReadingPage(); renderEnglishPage(); }
+/* 저장 한 번에 여러 구독이 동시에 깨어나도 한 번만 다시 그립니다(휴대폰 배터리·속도) */
+let renderQueued = false;
+function renderAll() { if (renderQueued) return; renderQueued = true; queueMicrotask(() => { renderQueued = false; renderAllNow(); }); }
+
+/* ── 저장 ── */
+function setStatus(text, isErr) { const s = $("status"); s.textContent = text; s.classList.toggle("err", !!isErr); }
+/* 맨 앞 (일자/요일) 표기를 날짜로: (25/화) · (11/25/화) · (25일 화) · (11.25) 모두 인식. 월이 없으면 요일이 맞는 가장 가까운 달로 정합니다. */
+function leadDate(text) {
+  const m = text.match(/^\s*[\(\[]\s*(?:(\d{1,2})\s*[\/.\-]\s*)?(\d{1,2})\s*일?\s*(?:[\/.,·\s]\s*([일월화수목금토])(?:요일)?)?\s*[\)\]]/);
+  if (!m) return null;
+  const d = +m[2], wd = m[3] ? WEEKDAYS.indexOf(m[3]) : -1;
+  if (d < 1 || d > 31) return null;
+  const now = new Date(todayStr + "T00:00:00");
+  let cands = [];
+  if (m[1]) {
+    const mo = +m[1]; if (mo < 1 || mo > 12) return null;
+    [-1, 0, 1].forEach((k) => { const dt = new Date(now.getFullYear() + k, mo - 1, d); if (dt.getDate() === d) cands.push(dt); });
+  } else {
+    [-1, 0, 1, 2].forEach((k) => { const dt = new Date(now.getFullYear(), now.getMonth() + k, d); if (dt.getDate() === d) cands.push(dt); });
+  }
+  if (!m[1] && wd >= 0 && cands.some((dt) => dt.getDay() === wd)) cands = cands.filter((dt) => dt.getDay() === wd);
+  if (!cands.length) return null;
+  const score = (dt) => { const diff = (dt - now) / 86400000; return diff >= -20 ? Math.abs(diff) : 1000 + Math.abs(diff); };
+  cands.sort((a, b) => score(a) - score(b));
+  return localDate(cands[0]);
+}
+function parseDue(text) {
+  const lead = leadDate(text); if (lead) return lead;
+  const m = text.match(/(?:^|\s|\()(\d{1,2})[\/.](\d{1,2})(?:\)|\s|$)/);
+  if (!m) return null;
+  const mo = +m[1], d = +m[2];
+  if (mo < 1 || mo > 12 || d < 1 || d > 31) return null;
+  let y = new Date().getFullYear();
+  const mk = (yy) => `${yy}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+  if (daysBetween(todayStr, mk(y)) < -60) y += 1;
+  return mk(y);
+}
+async function write(fn, failMsg) {
+  try { await fn(); setStatus("저장됨"); }
+  catch (e) {
+    if (e && e.code === "invalid_argument") { writable = false; renderAll(); setStatus("이 화면에서는 읽기만 할 수 있습니다.", true); return; }
+    if (e && e.code === "quota_exceeded") { setStatus("저장 공간이 찼습니다. 지난 완료 항목을 몇 개 지워 주세요.", true); return; }
+    setStatus(failMsg + " 잠시 뒤 다시 해 보세요.", true);
+  }
+}
+$("addForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const input = $("newTask"); const text = input.value.trim();
+  if (!text) return;
+  if (!db) { setStatus("아직 연결되지 않았습니다. 잠시 뒤 다시 추가해 주세요.", true); return; }
+  input.value = "";
+  const reg = mapConf.regions.find((r) => r.id === selected);
+  write(() => db.collection("tasks").add({ text, done: false, dept: reg ? reg.depts[0] : null, skill: null, date: todayStr, due: parseDue(text), createdAt: new Date().toISOString(), doneAt: null }), "추가하지 못했습니다.");
+});
+function setPotential(id, n) {
+  const next = { ...potential, [id]: n };
+  potential = next; renderAll();
+  write(() => db.doc("meta/potential").set(next), "미래 가능성을 저장하지 못했습니다.");
+}
+function toggle(t, done) { write(() => db.doc("tasks/" + t.id).update({ done, doneAt: done ? new Date().toISOString() : null }), "체크를 저장하지 못했습니다."); }
+function remove(t, btn) {
+  if (btn.dataset.armed !== "1") {
+    btn.dataset.armed = "1"; btn.textContent = "삭제?"; btn.style.fontSize = "12px";
+    setTimeout(() => { btn.dataset.armed = ""; btn.textContent = "×"; btn.style.fontSize = ""; }, 3000);
+    return;
+  }
+  write(() => db.doc("tasks/" + t.id).delete(), "삭제하지 못했습니다.");
+}
+function startEdit(node, t) {
+  const input = document.createElement("input");
+  input.type = "text"; input.value = t.text; input.maxLength = 200; input.id = "edit-" + t.id;
+  input.style.cssText = "width:100%;font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--accent);border-radius:6px;padding:4px 8px;";
+  node.replaceWith(input); input.focus();
+  let finished = false;
+  const finish = (save) => {
+    if (finished) return; finished = true;
+    const v = input.value.trim();
+    if (save && v && v !== t.text) write(() => db.doc("tasks/" + t.id).update({ text: v, due: parseDue(v) }), "고친 내용을 저장하지 못했습니다.");
+    else renderAll();
+  };
+  input.addEventListener("keydown", (e) => { if (e.key === "Enter") finish(true); if (e.key === "Escape") finish(false); });
+  input.addEventListener("blur", () => finish(true));
+}
+
+$("jumpBtn").addEventListener("click", () => {
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  $("todayHead").closest("section").scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+  setTimeout(() => $("newTask").focus({ preventScroll: true }), reduce ? 0 : 450);
+});
+
+if (init3D()) { $("map").setAttribute("hidden", ""); $("mapFrame").classList.add("is-3d"); }
+renderAll();
+renderHint();
+$("rpBack").addEventListener("click", () => { location.hash = ""; showView(); $("mapFrame").scrollIntoView({ block: "start" }); });
+$("epBack").addEventListener("click", () => { location.hash = ""; showView(); $("mapFrame").scrollIntoView({ block: "start" }); });
+$("epDate").value = todayStr;
+$("epSearch").addEventListener("input", renderEnglishPage);
+$("epHide").addEventListener("change", renderEnglishPage);
+$("epForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const en = $("epEn").value.trim(), ko = $("epKo").value.trim();
+  if (!en) { $("epEn").focus(); return; }
+  if (!db) { setStatus("아직 연결되지 않았습니다. 잠시 뒤 다시 추가해 주세요.", true); return; }
+  $("epEn").value = ""; $("epKo").value = ""; $("epEn").focus();
+  write(() => db.collection("english").add({ date: $("epDate").value || todayStr, type: $("epType").value, en, ko: ko || null, createdAt: new Date().toISOString() }), "저장하지 못했습니다.");
+});
+showView();
+
+(() => {
+  try { db = makeLocalDb(); } catch (_) { db = null; }
+  if (!db) { setStatus("이 브라우저에서는 저장할 수 없습니다. 크롬이나 사파리로 열어 주세요.", true); return; }
+  try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (_) {}
+  setStatus("이 기기에 저장 중");
+  db.collection("tasks").onSnapshot((snap) => {
+    tasks = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    renderAll();
+  });
+  /* 지도 이름 바꾸기 */
+  const titleEl = $("mapTitle");
+  const editTitle = () => {
+    const i = textInput("titleEdit", titleEl.textContent, "지도 이름", 30);
+    i.style.cssText = "font:inherit;font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--ink);background:var(--paper);border:1px solid var(--accent);border-radius:8px;padding:2px 8px;max-width:100%";
+    titleEl.replaceWith(i); i.focus(); i.select();
+    let done = false;
+    const finish = (save) => {
+      if (done) return; done = true;
+      const v = i.value.trim(); i.replaceWith(titleEl);
+      if (save && v && v !== titleEl.textContent) write(() => db.doc("meta/profile").set({ title: v }), "지도 이름을 저장하지 못했습니다.");
+    };
+    i.addEventListener("keydown", (e) => { if (e.key === "Enter") finish(true); if (e.key === "Escape") finish(false); });
+    i.addEventListener("blur", () => finish(true));
+  };
+  titleEl.addEventListener("click", editTitle);
+  titleEl.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); editTitle(); } });
+  db.doc("meta/profile").onSnapshot((snap) => {
+    const t = snap.exists && snap.data().title ? snap.data().title : "나의 탐험 지도";
+    titleEl.textContent = t; document.title = t;
+  });
+  /* 내 메모: 입력을 멈추면 자동 저장 */
+  let memoTimer = 0;
+  $("logText").addEventListener("input", () => {
+    clearTimeout(memoTimer);
+    memoTimer = setTimeout(() => write(() => db.doc("meta/review").set({ text: $("logText").value, updatedAt: localDate() }), "메모를 저장하지 못했습니다."), 600);
+  });
+  /* 백업 내보내기 · 가져오기 */
+  $("exportBtn").addEventListener("click", async () => {
+    const name = `탐험지도_백업_${localDate()}.json`, text = db.exportAll();
+    const file = new File([text], name, { type: "application/json" });
+    try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: name }); setStatus("백업을 보냈습니다"); return; } } catch (e) { if (e && e.name === "AbortError") return; }
+    const a = document.createElement("a"); a.href = URL.createObjectURL(file); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000); setStatus("백업 파일을 저장했습니다");
+  });
+  const ib = $("importBtn");
+  ib.addEventListener("click", () => {
+    if (ib.dataset.armed !== "1") { ib.dataset.armed = "1"; ib.textContent = "지금 기록을 덮어씁니다. 한 번 더 누르세요"; setTimeout(() => { ib.dataset.armed = ""; ib.textContent = "⬆️ 백업 가져오기"; }, 4000); return; }
+    ib.dataset.armed = ""; ib.textContent = "⬆️ 백업 가져오기"; $("importFile").click();
+  });
+  $("importFile").addEventListener("change", async (e) => {
+    const f = e.target.files && e.target.files[0]; e.target.value = ""; if (!f) return;
+    try { db.importAll(await f.text()); setStatus("백업을 가져왔습니다"); }
+    catch (_) { setStatus("탐험 지도 백업 파일이 아닙니다.", true); }
+  });
+  /* 날짜가 바뀌면(자정이 지나 다시 열면) 오늘 날짜로 다시 그립니다 */
+  const dayCheck = () => { if (localDate() !== todayStr) location.reload(); };
+  setInterval(dayCheck, 60000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) dayCheck(); });
+  db.collection("english").onSnapshot((snap) => {
+    studies = snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((s) => s && typeof s.en === "string");
+    renderAll();
+  }, () => {});
+  db.collection("books").onSnapshot((snap) => {
+    books = snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((b) => b && typeof b.title === "string");
+    renderAll();
+  }, () => {});
+  db.doc("meta/review").onSnapshot((snap) => {
+    if (!snap.exists) return;
+    const r = snap.data();
+    if (document.activeElement !== $("logText")) $("logText").value = r.text || "";
+    $("logDate").textContent = r.updatedAt ? "메모 저장 · " + r.updatedAt : "";
+  }, () => {});
+  db.doc("meta/potential").onSnapshot((snap) => {
+    const d = snap.exists ? snap.data() : null;
+    potential = d && typeof d === "object" ? { ...d } : {};
+    renderAll();
+  }, () => {});
+  db.doc("meta/regions").onSnapshot((snap) => {
+    const d = snap.exists ? snap.data() : null;
+    const ok = d && Array.isArray(d.regions) && d.regions.every((r) => r && typeof r.id === "string" && typeof r.name === "string" && Number.isFinite(r.x) && Number.isFinite(r.y) && Number.isFinite(r.r) && Array.isArray(r.depts));
+    mapConf = ok ? { regions: d.regions, frontier: Array.isArray(d.frontier) ? d.frontier : [] } : DEFAULT_MAP;
+    renderAll();
+  }, () => {});
+})();
+</script>
+
+
+</body></html>
