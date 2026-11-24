@@ -275,7 +275,7 @@ form.book-edit .btn { padding: 0 14px; }
       <span>🛣️ 길 = 최근 14일 동안 끝낸 일 수: 풀숲 길(0) → 흙길(1~2) → 등불 길(3~6) → 불 밝힌 큰길(7+)</span>
       <span>💡 지역의 불빛 = 최근 30일 동안 끝낸 일 수 · 고른 지역은 연둣빛 고리</span>
       <span>✦ 금빛 반짝임 = 미래 가능성이 큰 땅(★★ 이상)</span>
-      <span>🍚 집밥을 해 먹으면 재무의 호수에 💰 동전, 건강의 들판에 💚 하트가 쌓입니다 · 🛵 배달은 다른 할 일처럼 오늘의 탐험에 들어가고, 완료 체크하면 두 곳에 − 표시(회색 동전·깨진 하트)가 생깁니다</span>
+      <span>🍚 집밥을 해 먹으면 재무 지역에 💰 동전, 건강 지역에 💚 하트가 쌓입니다 · 🛵 배달은 다른 할 일처럼 오늘의 탐험에 들어가고, 완료 체크하면 두 곳에 − 표시(회색 동전·깨진 하트)가 생깁니다</span>
       <span>◌ 미개척지 = 앞으로 열 새 분야 자리</span>
       <span>🐾 지역 친구들: 숲 🦊 여우 · 고원 🐐 산양 · 정글 🐒 원숭이 · 호수 🦆 오리 · 들판 🐇 토끼 · 마을 🐕 강아지 · 언덕 🦉 부엉이 · 베이스캠프 🦝 너구리 — 레벨이 오르면 친구가 늘고, 가끔 길을 따라 베이스캠프에 놀러 옵니다</span>
       <span>✏️ 지역을 누르면 이름·설명·스킬을 바꿀 수 있고, 전체 보기에서 미개척지에 새 지역을 열 수 있습니다</span>
@@ -326,22 +326,22 @@ form.book-edit .btn { padding: 0 14px; }
 
 <div class="page rp" id="readingPage" hidden>
   <header><button class="btn jump" id="rpBack" type="button">← 지도로 돌아가기</button></header>
-  <div class="rp-hero"><h1>📚 독서 언덕</h1><p class="region-blurb" id="rpBlurb"></p></div>
+  <div class="rp-hero"><div id="rpTitle"><h1>📚 독서 언덕</h1></div><p class="region-blurb" id="rpBlurb"></p></div>
   <div class="rp-stats" id="rpStats"></div>
   <section class="panel"><div class="panel-head"><h2>독서 타임라인</h2></div><div class="region-body" id="rpTimeline"></div></section>
   <section class="panel"><div class="panel-head"><h2>책장</h2></div><div class="region-body" id="rpBooks"></div></section>
-  <section class="panel"><div class="panel-head"><h2>독서 언덕의 남은 일</h2><span class="count" id="rpTaskCount"></span></div><ul class="list" id="rpTasks"></ul></section>
+  <section class="panel"><div class="panel-head"><h2 id="rpTaskHead">남은 일</h2><span class="count" id="rpTaskCount"></span></div><ul class="list" id="rpTasks"></ul></section>
 </div>
 
 <div class="page rp" id="englishPage" hidden>
   <header><button class="btn jump" id="epBack" type="button">← 지도로 돌아가기</button></header>
-  <div class="rp-hero"><h1>🌲 영어의 숲</h1><p class="region-blurb" id="epBlurb"></p></div>
+  <div class="rp-hero"><div id="epTitle"><h1>🌲 영어의 숲</h1></div><p class="region-blurb" id="epBlurb"></p></div>
   <div class="rp-stats" id="epStats"></div>
   <section class="panel"><div class="panel-head"><h2>공부한 것 적기</h2></div><div class="region-body">
     <form class="ep-form" id="epForm" autocomplete="off">
       <input type="date" id="epDate" aria-label="공부한 날">
       <select id="epType" aria-label="종류"><option value="sentence">문장</option><option value="word">단어</option></select>
-      <input type="text" id="epEn" class="ep-wide" maxlength="300" placeholder="English (예: I work on railway policy.)" aria-label="영어 문장·단어">
+      <input type="text" id="epEn" class="ep-wide" maxlength="300" placeholder="English (예: I'm learning something new every day.)" aria-label="영어 문장·단어">
       <input type="text" id="epKo" class="ep-wide" maxlength="300" placeholder="한글 해석" aria-label="한글 해석">
       <button class="btn" type="submit">추가</button>
     </form>
@@ -351,7 +351,7 @@ form.book-edit .btn { padding: 0 14px; }
     <div class="ep-tools"><input type="search" id="epSearch" placeholder="찾기 (영어·한글)" aria-label="공부 기록 찾기"><label><input type="checkbox" id="epHide"> 한글 가리기 (눌러서 하나씩 확인)</label></div>
     <div id="epLog"></div>
   </div></section>
-  <section class="panel"><div class="panel-head"><h2>영어의 숲의 남은 일</h2><span class="count" id="epTaskCount"></span></div><ul class="list" id="epTasks"></ul></section>
+  <section class="panel"><div class="panel-head"><h2 id="epTaskHead">남은 일</h2><span class="count" id="epTaskCount"></span></div><ul class="list" id="epTasks"></ul></section>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -674,7 +674,7 @@ function drawRegion(svg, reg0) {
   const sub = el("text", { class: "label-sub", x: reg.x, y: ly + 20, "text-anchor": "middle" }, g);
   sub.textContent = reg.id === "base" ? baseSubText() : `Lv.${st.level} · 🌳${st.xp}` + (st.fog ? " · 🌫️" : "");
 
-  const pick = () => selectRegion(selected === reg.id ? null : reg.id);
+  const pick = () => (selected === reg.id ? startRename(reg.id) : selectRegion(reg.id));
   g.addEventListener("click", pick);
   g.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
   return st;
@@ -1235,7 +1235,7 @@ function update3D() {
     if (reg.id === "reading") { const nb = books.filter((x) => x.status !== "done").length; if (nb) chip("gold", `📖 ${nb}권 읽는 중`); }
     if (reg.id === "english" && studies.length) chip("gold", `📝 ${studies.length}개 공부`);
     if (chips.childNodes.length) b.appendChild(chips);
-    b.addEventListener("click", () => (reg.id === "reading" ? openReading() : reg.id === "english" ? openEnglish() : selectRegion(selected === reg.id ? null : reg.id)));
+    b.addEventListener("click", () => (reg.id === "reading" ? openReading() : reg.id === "english" ? openEnglish() : selected === reg.id ? startRename(reg.id) : selectRegion(reg.id)));
     box.appendChild(b); S3.tags.push({ node: b, pos });
   });
   (mapConf.frontier || []).forEach((p) => {
@@ -1303,7 +1303,7 @@ function renderPanel() {
   h2.textContent = "지역 정보";
   const close = document.createElement("button"); close.className = "btn-ghost"; close.type = "button"; close.textContent = "전체 보기";
   close.addEventListener("click", () => selectRegion(null)); head.appendChild(close);
-  const t = document.createElement("h3"); t.className = "region-title"; t.textContent = reg.name;
+  const t = renamableTitle("h3", "region-title", reg, "", () => renderPanel());
   const bl = document.createElement("p"); bl.className = "region-blurb"; bl.textContent = reg.blurb || "";
   const xp = document.createElement("div"); xp.className = "xp";
   const row = document.createElement("div"); row.className = "xp-row";
@@ -1368,16 +1368,63 @@ function renderPanel() {
   const bookWrap = document.createElement("div"); bookWrap.className = "xp";
   if (reg.id === "reading") {
     const ob = document.createElement("button"); ob.type = "button"; ob.className = "btn"; ob.style.padding = "10px 16px";
-    ob.textContent = `📚 독서 언덕 페이지 열기 (읽는 중 ${books.filter((x) => x.status !== "done").length}권)`;
+    ob.textContent = `📚 ${reg.name} 페이지 열기 (읽는 중 ${books.filter((x) => x.status !== "done").length}권)`;
     ob.addEventListener("click", openReading); bookWrap.appendChild(ob);
   }
   if (reg.id === "english") {
     const ob = document.createElement("button"); ob.type = "button"; ob.className = "btn"; ob.style.padding = "10px 16px";
-    ob.textContent = `🌲 영어 공부 기록 열기 (문장·단어 ${studies.length}개)`;
+    ob.textContent = `🌲 ${reg.name} 기록 열기 (문장·단어 ${studies.length}개)`;
     ob.addEventListener("click", openEnglish); bookWrap.appendChild(ob);
   }
   body.append(t, bl, fr, xp, daily, bookWrap, potWrap, sh, sk, th, ul);
   if (writable && db) body.appendChild(regionEditor(reg));
+  if (renamingId === reg.id) { const inp = $(`rn-${reg.id}`); if (inp) { inp.focus(); inp.scrollIntoView({ block: "center", behavior: "smooth" }); } }
+}
+
+/* ── 이름을 눌러 바로 바꾸기: 패널 제목·전용 페이지 제목·지도에서 고른 지역을 한 번 더 누르기 ── */
+let renamingId = null, renameDraft = "";
+function startRename(id) {
+  if (!writable || !db) return;
+  renamingId = id; renameDraft = (mapConf.regions.find((r) => r.id === id) || {}).name || "";
+  if (selected !== id && id !== "reading" && id !== "english") { selected = id; drawMap(); renderHint(); }
+  renderAll();
+}
+function renamableTitle(tag, cls, reg, prefix, rerender) {
+  if (renamingId === reg.id && writable && db) {
+    const f = document.createElement("form"); f.className = "book-edit"; f.autocomplete = "off";
+    const ni = textInput(`rn-${reg.id}`, renameDraft || reg.name, "지역 이름", 30);
+    ni.addEventListener("input", () => { renameDraft = ni.value; });
+    const ok = document.createElement("button"); ok.type = "submit"; ok.className = "btn"; ok.textContent = "저장";
+    const no = document.createElement("button"); no.type = "button"; no.className = "btn-ghost"; no.textContent = "취소";
+    const stop = () => { renamingId = null; renameDraft = ""; rerender(); };
+    no.addEventListener("click", stop);
+    ni.addEventListener("keydown", (e) => { if (e.key === "Escape") stop(); });
+    f.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = ni.value.trim(); if (!name) { ni.focus(); return; }
+      renamingId = null; renameDraft = "";
+      if (name !== reg.name) saveRegions(mapConf.regions.map((r) => (r.id === reg.id ? { ...r, name } : r)), mapConf.frontier || []);
+      else rerender();
+    });
+    f.append(ni, ok, no);
+    return f;
+  }
+  const t = document.createElement(tag); t.className = cls; t.textContent = prefix + reg.name;
+  if (writable && db) {
+    const pen = document.createElement("span"); pen.textContent = " ✏️"; pen.style.fontSize = "0.6em"; pen.style.opacity = "0.6"; t.appendChild(pen);
+    t.style.cursor = "pointer"; t.tabIndex = 0; t.title = "눌러서 이름 바꾸기"; t.setAttribute("role", "button");
+    t.addEventListener("click", () => startRename(reg.id));
+    t.addEventListener("keydown", (e) => { if (e.key === "Enter") startRename(reg.id); });
+  }
+  return t;
+}
+function renderPageTitle(boxId, reg, icon) {
+  const box = $(boxId); if (!box || !reg) return;
+  const cur = box.querySelector("input");
+  if (cur && renamingId === reg.id) return; // 입력 중이면 그대로 둠
+  const node = renamableTitle("h1", "", reg, icon + " ", () => renderAll());
+  box.replaceChildren(node);
+  if (renamingId === reg.id) { const inp = $(`rn-${reg.id}`); if (inp) inp.focus(); }
 }
 
 /* ── 지역 직접 편집: 이름·설명·스킬 바꾸기, 미개척지에 새 지역 열기 (db meta/regions에 저장) ── */
@@ -1475,6 +1522,7 @@ function renderReadingPage() {
   if ($("readingPage").hidden) return;
   const reg = mapConf.regions.find((r) => r.id === "reading");
   $("rpBlurb").textContent = reg ? reg.blurb || "" : "";
+  renderPageTitle("rpTitle", reg, "📚"); if (reg) $("rpTaskHead").textContent = `${reg.name}의 남은 일`;
   const DAY = 86400000, day = (s) => new Date(s + "T00:00:00").getTime(), yr = todayStr.slice(0, 4);
   const reading = books.filter((b) => b.status !== "done"), done = books.filter((b) => b.status === "done");
   const days = books.filter((b) => b.startedAt).reduce((a, b) => a + Math.round(((b.finishedAt ? day(b.finishedAt) : day(todayStr)) - day(b.startedAt)) / DAY) + 1, 0);
@@ -1488,7 +1536,7 @@ function renderReadingPage() {
   const open = reg ? regionStats(reg).open : [], ul = $("rpTasks"); ul.replaceChildren();
   $("rpTaskCount").textContent = open.length + "건";
   if (open.length) open.forEach((t) => ul.appendChild(taskItem(t)));
-  else { const li = document.createElement("li"); li.className = "empty"; li.textContent = "남은 일이 없습니다. 지도 화면에서 독서 언덕을 고르고 적으면 여기로 들어옵니다."; ul.appendChild(li); }
+  else { const li = document.createElement("li"); li.className = "empty"; li.textContent = `남은 일이 없습니다. 지도 화면에서 ${reg ? reg.name : "이 지역"}을 고르고 적으면 여기로 들어옵니다.`; ul.appendChild(li); }
 }
 /* ── 영어의 숲 별도 페이지(#english): db english 문서 {date, type: "sentence"|"word", en, ko, createdAt} ── */
 function studyStreak(dates) {
@@ -1501,6 +1549,7 @@ function renderEnglishPage() {
   if ($("englishPage").hidden) return;
   const reg = mapConf.regions.find((r) => r.id === "english");
   $("epBlurb").textContent = reg ? reg.blurb || "" : "";
+  renderPageTitle("epTitle", reg, "🌲"); if (reg) $("epTaskHead").textContent = `${reg.name}의 남은 일`;
   const days = [...new Set(studies.map((s) => s.date).filter(Boolean))].sort().reverse();
   const nS = studies.filter((s) => s.type !== "word").length, nW = studies.filter((s) => s.type === "word").length;
   const st = $("epStats"); st.replaceChildren();
